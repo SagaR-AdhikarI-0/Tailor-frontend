@@ -1,18 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { logout, selectUser } from '../features/auth/authSlice'
+import { logout } from '../features/auth/authSlice'
+import AdminSidebar from '../components/admin/AdminSidebar'
 import { useCreateGarmentMutation, useGetProductsQuery } from '../features/products/productApi'
 import { useGetDesignsQuery } from '../features/designs/designApi'
 import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
-import { useGetMyOrdersQuery } from '../features/orders/orderApi'
+import { useGetAdminOrdersQuery } from '../features/orders/orderApi'
 import { uploadImage } from '../utils/uploadImage'
-
-const fabricRows = [
-    { name: 'Italian Wool', color: 'Charcoal', stock: 42, unit: 'meters' },
-    { name: 'Silk Satin', color: 'Crimson', stock: 26, unit: 'meters' },
-    { name: 'Cotton Linen', color: 'Ivory', stock: 18, unit: 'meters' },
-]
 
 const initialForm = {
     name: '',
@@ -26,11 +21,10 @@ const initialForm = {
 function AdminPage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const user = useSelector(selectUser)
     const { data: garments = [], isLoading: isLoadingGarments } = useGetProductsQuery({ page: 1, limit: 20 })
     const { data: designs = [] } = useGetDesignsQuery()
     const { data: fabrics = [] } = useGetFabricsQuery()
-    const { data: orderData = [] } = useGetMyOrdersQuery()
+    const { data: orderData = [] } = useGetAdminOrdersQuery()
     const [createGarment, { isLoading: isCreatingGarment }] = useCreateGarmentMutation()
     const [form, setForm] = useState(initialForm)
     const [submitMessage, setSubmitMessage] = useState('')
@@ -111,41 +105,7 @@ function AdminPage() {
     return (
         <div className="min-h-screen bg-[#f5f1ec] text-stone-900">
             <div className="flex min-h-screen">
-                <aside className="hidden w-72 shrink-0 border-r border-stone-200 bg-[#1a1a1a] p-6 text-white lg:block">
-                    <div className="mb-10 flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-semibold tracking-[0.2em] text-stone-100">
-                            AR
-                        </div>
-                        <div>
-                            <p className="text-[10px] uppercase tracking-[0.35em] text-stone-300">Admin</p>
-                            <p className="text-lg font-semibold">Atelier Rouge</p>
-                        </div>
-                    </div>
-
-                    <nav className="space-y-2">
-                        {['Overview', 'Products', 'Fabrics', 'Orders', 'Customers'].map((item, index) => (
-                            <button
-                                key={item}
-                                type="button"
-                                className={[
-                                    'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-medium transition',
-                                    index === 0 ? 'bg-white text-stone-900' : 'text-stone-200 hover:bg-white/5',
-                                ].join(' ')}
-                            >
-                                <span>{item}</span>
-                                <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-stone-300">
-                                    {index + 1}
-                                </span>
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="mt-10 rounded-3xl bg-white/5 p-4">
-                        <p className="text-xs uppercase tracking-[0.25em] text-stone-400">Signed in</p>
-                        <p className="mt-2 text-lg font-semibold">{user?.name || 'Admin user'}</p>
-                        <p className="mt-1 text-sm text-stone-300">{user?.email || 'admin@atelier.com'}</p>
-                    </div>
-                </aside>
+                <AdminSidebar />
 
                 <main className="flex-1 p-4 sm:p-6 lg:p-8">
                     <div className="rounded-[28px] border border-stone-200 bg-white p-4 shadow-xl shadow-stone-200/50 sm:p-6">
@@ -158,7 +118,7 @@ function AdminPage() {
                             <div className="flex items-center gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => navigate('/admin/garments')}
+                                    onClick={() => document.getElementById('dashboard-add-garment')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                                     className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 hover:border-stone-900 hover:text-stone-900"
                                 >
                                     New garment
@@ -191,7 +151,7 @@ function AdminPage() {
                         </div>
 
                         <div className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                            <section className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
+                            <section id="dashboard-add-garment" className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="text-xl font-semibold">Products</h2>
                                     <button type="button" className="text-sm font-medium text-stone-700 underline underline-offset-4">
@@ -342,23 +302,24 @@ function AdminPage() {
                             <section className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="text-xl font-semibold">Fabrics</h2>
-                                    <button type="button" className="text-sm font-medium text-stone-700 underline underline-offset-4">
+                                    <button type="button" onClick={() => navigate('/admin/fabrics')} className="text-sm font-medium text-stone-700 underline underline-offset-4">
                                         Add fabric
                                     </button>
                                 </div>
 
                                 <div className="space-y-3">
-                                    {fabricRows.map((fabric) => (
-                                        <div key={fabric.name} className="rounded-2xl bg-white p-3 shadow-sm">
+                                    {fabrics.slice(0, 5).map((fabric) => (
+                                        <div key={fabric.id || fabric.name} className="rounded-2xl bg-white p-3 shadow-sm">
                                             <div className="flex items-center justify-between">
                                                 <p className="font-medium text-stone-900">{fabric.name}</p>
                                                 <span className="rounded-full bg-stone-100 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-stone-600">
-                                                    {fabric.color}
+                                                    {fabric.color || 'Unspecified'}
                                                 </span>
                                             </div>
-                                            <p className="mt-2 text-sm text-stone-500">{fabric.stock} {fabric.unit} available</p>
+                                            <p className="mt-2 text-sm text-stone-500">{fabric.availableQuantity ?? 0} available</p>
                                         </div>
                                     ))}
+                                    {fabrics.length === 0 && <p className="rounded-2xl bg-white p-4 text-sm text-stone-500">No fabrics available yet.</p>}
                                 </div>
                             </section>
                         </div>
@@ -366,7 +327,7 @@ function AdminPage() {
                         <section className="mt-8 rounded-3xl border border-stone-200 bg-stone-50 p-5">
                             <div className="mb-4 flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Latest orders</h2>
-                                <button type="button" className="text-sm font-medium text-stone-700 underline underline-offset-4">
+                                <button type="button" onClick={() => navigate('/admin/orders')} className="text-sm font-medium text-stone-700 underline underline-offset-4">
                                     View all
                                 </button>
                             </div>

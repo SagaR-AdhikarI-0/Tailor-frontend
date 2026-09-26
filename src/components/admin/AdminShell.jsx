@@ -1,17 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import AdminSidebar from './AdminSidebar'
+import { adminLinks } from './adminLinks'
 import { useGetAdminOrdersQuery } from '../../features/orders/orderApi'
 import { useGetDesignsQuery } from '../../features/designs/designApi'
 import { useGetFabricsQuery } from '../../features/fabrics/fabricApi'
 import { useGetGarmentsQuery } from '../../features/products/productApi'
-
-const links = [
-    { label: 'Overview', to: '/admin' },
-    { label: 'Garments', to: '/admin/garments' },
-    { label: 'Designs', to: '/admin/designs' },
-    { label: 'Fabrics', to: '/admin/fabrics' },
-    { label: 'Orders', to: '/admin/orders' },
-]
 
 export default function AdminShell({ children, title, eyebrow }) {
     const location = useLocation()
@@ -46,30 +40,11 @@ export default function AdminShell({ children, title, eyebrow }) {
 
     return (
         <div className="min-h-screen bg-[#f5f1ec] text-stone-900">
-            <div className="mx-auto flex min-h-screen max-w-[1600px]">
-                <aside className="hidden w-64 shrink-0 bg-[#1a1a1a] p-6 text-white lg:block">
-                    <Link to="/admin" className="block border-b border-white/10 pb-8">
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-stone-400">Atelier Rouge</p>
-                        <p className="mt-2 text-xl font-semibold">Admin studio</p>
-                    </Link>
-                    <nav className="mt-8 space-y-2">
-                        {links.map((link) => {
-                            const active = location.pathname === link.to
-                            return (
-                                <Link
-                                    key={link.to}
-                                    to={link.to}
-                                    className={`block rounded-2xl px-4 py-3 text-sm font-medium transition ${active ? 'bg-white text-stone-900' : 'text-stone-300 hover:bg-white/10 hover:text-white'}`}
-                                >
-                                    {link.label}
-                                </Link>
-                            )
-                        })}
-                    </nav>
-                </aside>
-                <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-10">
+            <div className="flex min-h-screen w-full">
+                <AdminSidebar />
+                <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
                     <nav className="mb-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#1a1a1a] p-2 lg:hidden">
-                        {links.map((link) => {
+                        {adminLinks.map((link) => {
                             const active = location.pathname === link.to
                             return <Link key={link.to} to={link.to} className={`shrink-0 rounded-xl px-3 py-2 text-sm font-medium ${active ? 'bg-white text-stone-900' : 'text-stone-300'}`}>{link.label}</Link>
                         })}
@@ -78,7 +53,8 @@ export default function AdminShell({ children, title, eyebrow }) {
                         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                             <div>
                                 <p className="text-xs font-medium uppercase tracking-[0.35em] text-stone-500">{eyebrow || 'Admin workspace'}</p>
-                                <h1 className="mt-3 text-3xl font-semibold tracking-tight">{title}</h1>
+                                <h1 className="mt-3 text-3xl font-semibold tracking-tight">Admin Dashboard</h1>
+                                <p className="mt-1 text-sm text-stone-500">{title}</p>
                             </div>
                             <div className="relative w-full xl:max-w-md">
                                 <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search garments, designs, fabrics, orders" className="admin-input" />
