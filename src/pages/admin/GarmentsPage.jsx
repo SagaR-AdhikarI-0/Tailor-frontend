@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import AdminShell from '../../components/admin/AdminShell'
+import ImageUploadField from '../../components/admin/ImageUploadField'
 import {
     useCreateGarmentMutation,
     useDeleteGarmentMutation,
@@ -26,6 +27,8 @@ export default function GarmentsPage() {
     const [form, setForm] = useState(emptyForm)
     const [editingId, setEditingId] = useState(null)
     const [message, setMessage] = useState('')
+    const [imageUploading, setImageUploading] = useState(false)
+    const [imageError, setImageError] = useState('')
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
     const [sort, setSort] = useState('name')
@@ -141,11 +144,12 @@ export default function GarmentsPage() {
                         <input name="name" value={form.name} onChange={handleChange} required placeholder="Name" className="admin-input" />
                         <input name="category" value={form.category} onChange={handleChange} required placeholder="Category" className="admin-input" />
                         <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" rows="3" className="admin-input" />
-                        <input name="iconUrl" value={form.iconUrl} onChange={handleChange} type="url" placeholder="Icon URL" className="admin-input" />
+                        <ImageUploadField label="Garment image" value={form.iconUrl} onChange={(iconUrl) => setForm((current) => ({ ...current, iconUrl }))} onUploading={setImageUploading} onError={setImageError} />
+                        {imageError && <p className="text-sm text-red-700">{imageError}</p>}
                         <textarea name="requiredMeasurementsJson" value={form.requiredMeasurementsJson} onChange={handleChange} required rows="3" placeholder='Required measurements JSON, e.g. [{"name":"chest"}]' className="admin-input font-mono text-xs" />
                         <input name="basePrice" value={form.basePrice} onChange={handleChange} required type="number" min="0" step="0.01" placeholder="Base price" className="admin-input" />
                         {message && <p className="rounded-2xl bg-stone-50 p-3 text-sm text-stone-700">{message}</p>}
-                        <button type="submit" disabled={creating || updating} className="w-full rounded-full bg-stone-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">{creating || updating ? 'Saving...' : editingId ? 'Update garment' : 'Create garment'}</button>
+                        <button type="submit" disabled={creating || updating || imageUploading} className="w-full rounded-full bg-stone-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">{creating || updating || imageUploading ? 'Saving...' : editingId ? 'Update garment' : 'Create garment'}</button>
                     </form>
                 </section>
             </div>

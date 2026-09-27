@@ -2,16 +2,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import FashionHero from '../../components/layout/Hero'
 import Navbar from '../../components/layout/Navbar'
-import { selectIsAuthenticated, selectUser } from '../features/auth/authSlice'
+import { selectIsAuthenticated } from '../features/auth/authSlice'
 import { useGetProductsQuery } from '../features/products/productApi'
 
 function HomePage() {
     const navigate = useNavigate()
     const isAuthenticated = useSelector(selectIsAuthenticated)
-    const user = useSelector(selectUser)
     const { data: products = [], isLoading } = useGetProductsQuery({ page: 1, limit: 4 })
-
-    const dashboardPath = user?.role === 'admin' ? '/admin' : '/user'
 
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
@@ -21,24 +18,24 @@ function HomePage() {
             <section className="mx-auto max-w-5xl px-4 py-12 text-center">
                 <h2 className="text-3xl font-semibold tracking-tight text-stone-900">Tailored access for every customer</h2>
                 <p className="mx-auto mt-4 max-w-2xl text-stone-600">
-                    Choose the role you want to explore. Admin handles inventory and ops, while users access personal tailoring flows.
+                    Explore the collection, choose your fabric and design, and place your tailoring order in a few simple steps.
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                     {isAuthenticated ? (
                         <button
                             type="button"
-                            onClick={() => navigate(dashboardPath)}
+                            onClick={() => navigate('/products')}
                             className="rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white hover:bg-stone-700"
                         >
-                            Open dashboard
+                            Shop the collection
                         </button>
                     ) : (
                         <Link
                             to="/login"
                             className="rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white hover:bg-stone-700"
                         >
-                            Login to continue
+                            Sign in to shop
                         </Link>
                     )}
                 </div>

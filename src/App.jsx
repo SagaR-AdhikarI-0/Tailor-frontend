@@ -4,7 +4,9 @@ import AdminPage from './pages/AdminPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
-import UserPage from './pages/UserPage'
+import ProductsPage from './pages/ProductsPage'
+import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
 import GarmentsPage from './pages/admin/GarmentsPage'
 import DesignsPage from './pages/admin/DesignsPage'
 import FabricsPage from './pages/admin/FabricsPage'
@@ -17,12 +19,29 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:productId" element={<ProductDetailPage />} />
       <Route
         path="/user"
         element={
           <ProtectedRoute allowedRoles={['user', 'admin']}>
-            <UserPage />
+            <Navigate to="/" replace />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <CartPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <CheckoutPage />
           </ProtectedRoute>
         }
       />
