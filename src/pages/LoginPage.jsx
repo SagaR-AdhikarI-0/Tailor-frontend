@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { setCredentials, selectIsAuthenticated, selectUser } from '../features/auth/authSlice'
 import { loginUser } from '../features/auth/authService'
+import BottomNavbar from '../../components/layout/BottomNavbar'
 
 function LoginPage() {
     const dispatch = useDispatch()
@@ -108,6 +109,7 @@ function LoginPage() {
                     </Link>
                 </p>
             </div>
+            <BottomNavbar />
         </div>
     )
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import Navbar from '../../components/layout/Navbar'
+import BottomNavbar from '../../components/layout/BottomNavbar'
 import { useGetProductsQuery } from '../features/products/productApi'
 
 function ProductsPage() {
@@ -32,6 +33,7 @@ function ProductsPage() {
                     })}
                 </div>}
             </main>
+            <BottomNavbar />
         </div>
     )
 }

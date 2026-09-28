@@ -1,81 +1,130 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import FashionHero from '../../components/layout/Hero'
 import Navbar from '../../components/layout/Navbar'
+import BottomNavbar from '../../components/layout/BottomNavbar'
 import { selectIsAuthenticated } from '../features/auth/authSlice'
+import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
 import { useGetProductsQuery } from '../features/products/productApi'
 
 function HomePage() {
-    const navigate = useNavigate()
     const isAuthenticated = useSelector(selectIsAuthenticated)
     const { data: products = [], isLoading } = useGetProductsQuery({ page: 1, limit: 4 })
+    const { data: fabrics = [] } = useGetFabricsQuery()
 
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
             <Navbar />
             <FashionHero />
 
-            <section className="mx-auto max-w-5xl px-4 py-12 text-center">
-                <h2 className="text-3xl font-semibold tracking-tight text-stone-900">Tailored access for every customer</h2>
-                <p className="mx-auto mt-4 max-w-2xl text-stone-600">
-                    Explore the collection, choose your fabric and design, and place your tailoring order in a few simple steps.
-                </p>
-
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                    {isAuthenticated ? (
-                        <button
-                            type="button"
-                            onClick={() => navigate('/products')}
-                            className="rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white hover:bg-stone-700"
-                        >
-                            Shop the collection
-                        </button>
-                    ) : (
-                        <Link
-                            to="/login"
-                            className="rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white hover:bg-stone-700"
-                        >
-                            Sign in to shop
-                        </Link>
-                    )}
+            <section className="border-b border-stone-200 bg-[#f0ebe4]">
+                <div className="mx-auto grid max-w-6xl divide-y divide-stone-300 px-4 py-8 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4 lg:px-6">
+                    <div className="px-5 py-3 text-center sm:px-8">
+                        <p className="text-3xl font-semibold tracking-tight text-stone-900">2,500+</p>
+                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Customers served</p>
+                    </div>
+                    <div className="px-5 py-3 text-center sm:px-8">
+                        <p className="text-3xl font-semibold tracking-tight text-stone-900">8,000+</p>
+                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Garments tailored</p>
+                    </div>
+                    <div className="px-5 py-3 text-center sm:px-8">
+                        <p className="text-3xl font-semibold tracking-tight text-stone-900">18</p>
+                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Years of craft</p>
+                    </div>
+                    <div className="px-5 py-3 text-center sm:px-8">
+                        <p className="text-3xl font-semibold tracking-tight text-stone-900">40+</p>
+                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Fabric options</p>
+                    </div>
                 </div>
             </section>
 
-            <section className="mx-auto max-w-6xl px-4 pb-16">
-                <div className="mb-6 flex items-center justify-between">
-                    <h3 className="text-2xl font-semibold text-stone-900">Featured collection</h3>
-                    <span className="text-xs font-medium uppercase tracking-[0.25em] text-stone-500">Public</span>
+            <section className="mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6">
+                <div className="flex items-end justify-between gap-6 border-b border-stone-300 pb-5">
+                    <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">A considered edit</p>
+                        <h3 className="mt-3 text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">Featured collection</h3>
+                    </div>
+                    <Link to="/products" className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-stone-600 underline decoration-stone-300 underline-offset-8 transition hover:text-stone-900 sm:block">View all pieces</Link>
                 </div>
 
                 {isLoading ? (
-                    <p className="text-stone-500">Loading products...</p>
+                    <p className="py-12 text-stone-500">Loading products...</p>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-4">
-                        {products.slice(0, 4).map((product) => (
-                            <article
-                                key={product.id || product._id}
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => navigate(product.id ? `/products/${product.id}` : isAuthenticated ? '/user' : '/login')}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'Enter' || event.key === ' ') navigate(product.id ? `/products/${product.id}` : isAuthenticated ? '/user' : '/login')
-                                }}
-                                className="cursor-pointer rounded-3xl border border-stone-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                            >
-                                {product.iconUrl || product.image || product.imageUrl ? (
-                                    <img src={product.iconUrl || product.image || product.imageUrl} alt={product.name} className="mb-4 h-48 w-full rounded-2xl object-cover" />
-                                ) : (
-                                    <div className="mb-4 h-48 rounded-2xl bg-stone-200" />
-                                )}
-                                <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{product.category || 'Tailoring'}</p>
-                                <h4 className="mt-2 text-lg font-semibold text-stone-900">{product.name || 'Signature Piece'}</h4>
-                                <p className="mt-2 text-sm text-stone-600">{product.basePrice != null ? `$${product.basePrice}` : 'Custom pricing'}</p>
-                                <button type="button" onClick={(event) => { event.stopPropagation(); navigate(product.id ? `/products/${product.id}` : isAuthenticated ? '/user' : '/login') }} className="mt-4 w-full rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700">View and order</button>
-                            </article>
-                        ))}
+                    <div className="mt-8 grid gap-x-6 gap-y-12 md:grid-cols-12">
+                        {products.slice(0, 4).map((product, index) => {
+                            const productPath = product.id ? `/products/${product.id}` : isAuthenticated ? '/user' : '/login'
+                            const imageUrl = product.iconUrl || product.image || product.imageUrl
+                            const isLead = index === 0
+                            return (
+                                <Link key={product.id || product._id} to={productPath} className={isLead ? 'group md:col-span-7' : 'group md:col-span-5'}>
+                                    <div className={`${isLead ? 'aspect-[1.2/1] sm:aspect-[1.35/1]' : 'aspect-[1.15/1]'} overflow-hidden bg-stone-200`}>
+                                        {imageUrl ? <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" /> : <div className="h-full w-full bg-stone-200" />}
+                                    </div>
+                                    <div className="mt-4 flex items-start justify-between gap-4 border-b border-stone-300 pb-4">
+                                        <div>
+                                            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-stone-500">{product.category || 'Tailoring'}</p>
+                                            <h4 className={`${isLead ? 'text-2xl' : 'text-xl'} mt-2 font-semibold text-stone-900`}>{product.name || 'Signature Piece'}</h4>
+                                        </div>
+                                        <p className="shrink-0 pt-5 text-sm text-stone-600">{product.basePrice != null ? `$${product.basePrice}` : 'Custom'}</p>
+                                    </div>
+                                    <span className="mt-3 inline-block text-xs font-semibold uppercase tracking-[0.18em] text-stone-500 transition group-hover:text-stone-900">Explore piece <span aria-hidden="true">↗</span></span>
+                                </Link>
+                            )
+                        })}
                     </div>
                 )}
+                <Link to="/products" className="mt-10 block text-center text-xs font-semibold uppercase tracking-[0.2em] text-stone-600 underline decoration-stone-300 underline-offset-8 sm:hidden">View all pieces</Link>
             </section>
+
+            <section className="border-t border-stone-200 bg-[#e9e3db]">
+                <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24">
+                    <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">The atelier approach</p>
+                        <h2 className="mt-4 max-w-lg text-4xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-5xl">Tailoring that begins with you.</h2>
+                        <p className="mt-6 max-w-md text-base leading-7 text-stone-600">A well-made garment should feel inevitable. We bring together thoughtful design, considered fabrics, and precise craft to create pieces that move naturally with your life.</p>
+                        <Link to="/products" className="mt-8 inline-block text-xs font-semibold uppercase tracking-[0.2em] text-stone-700 underline decoration-stone-400 underline-offset-8 transition hover:text-stone-950">Start your piece <span aria-hidden="true">↗</span></Link>
+                    </div>
+
+                    <div className="divide-y divide-stone-300 border-y border-stone-300">
+                        <div className="grid gap-4 py-6 sm:grid-cols-[72px_1fr] sm:gap-6">
+                            <p className="text-3xl font-light text-stone-400">01</p>
+                            <div><h3 className="text-xl font-semibold text-stone-900">Choose your foundation</h3><p className="mt-2 max-w-xl leading-7 text-stone-600">Begin with a silhouette from our collection, then make it yours with the details that matter to you.</p></div>
+                        </div>
+                        <div className="grid gap-4 py-6 sm:grid-cols-[72px_1fr] sm:gap-6">
+                            <p className="text-3xl font-light text-stone-400">02</p>
+                            <div><h3 className="text-xl font-semibold text-stone-900">Select with intention</h3><p className="mt-2 max-w-xl leading-7 text-stone-600">Explore fabrics and design options chosen for their texture, structure, and ability to wear beautifully over time.</p></div>
+                        </div>
+                        <div className="grid gap-4 py-6 sm:grid-cols-[72px_1fr] sm:gap-6">
+                            <p className="text-3xl font-light text-stone-400">03</p>
+                            <div><h3 className="text-xl font-semibold text-stone-900">Refine every detail</h3><p className="mt-2 max-w-xl leading-7 text-stone-600">Share your measurements and preferences, and our atelier prepares a piece with a fit and finish made specifically for you.</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="overflow-hidden bg-[#f4efe9]">
+                <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-20 lg:py-28">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {fabrics.filter((fabric) => fabric.isActive !== false).slice(0, 3).map((fabric, index) => {
+                            const imageUrl = fabric.imageUrl || fabric.image || fabric.iconUrl
+                            return <div key={fabric.id || fabric._id || index} className={`group relative overflow-hidden bg-stone-200 ${index === 1 ? 'mt-8 sm:mt-12' : ''}`}>
+                                <div className="aspect-[0.72/1]">{imageUrl ? <img src={imageUrl} alt={fabric.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /> : <div className="h-full w-full bg-stone-300" />}</div>
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/70 to-transparent p-4 pt-12 text-white"><p className="text-sm font-medium">{fabric.name}</p><p className="mt-1 text-xs text-white/70">{fabric.color || fabric.category || 'Atelier fabric'}</p></div>
+                            </div>
+                        })}
+                        {fabrics.filter((fabric) => fabric.isActive !== false).length === 0 && <div className="col-span-full flex aspect-[2/1] items-center justify-center bg-stone-200 text-sm text-stone-500">Our fabric selection is being prepared.</div>}
+                    </div>
+
+                    <div className="max-w-md">
+                        <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">The fabric library</p>
+                        <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-5xl">The right cloth changes everything.</h2>
+                        <p className="mt-6 text-base leading-7 text-stone-600">From quiet textures to expressive colour, every fabric is chosen for how it feels, falls, and becomes part of your everyday life.</p>
+                        <p className="mt-4 text-base leading-7 text-stone-600">Choose a foundation, then let the details make it unmistakably yours.</p>
+                        <Link to="/products" className="mt-8 inline-block text-xs font-semibold uppercase tracking-[0.2em] text-stone-700 underline decoration-stone-400 underline-offset-8 transition hover:text-stone-950">Explore the collection <span aria-hidden="true">↗</span></Link>
+                    </div>
+                </div>
+            </section>
+            <BottomNavbar />
         </div>
     )
 }

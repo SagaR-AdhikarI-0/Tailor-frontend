@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import BottomNavbar from '../../components/layout/BottomNavbar'
 
 function SignupPage() {
     const navigate = useNavigate()
@@ -137,6 +138,7 @@ function SignupPage() {
                     </Link>
                 </p>
             </div>
+            <BottomNavbar />
         </div>
     )
 }

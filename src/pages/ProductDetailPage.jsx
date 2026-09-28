@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux'
 import { selectIsAuthenticated } from '../features/auth/authSlice'
 import { useGetProductByIdQuery } from '../features/products/productApi'
 import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
-import { useAddToCartMutation } from '../features/orders/orderApi'
 import Navbar from '../../components/layout/Navbar'
+import { addLocalCartItem } from '../utils/localCart'
+import BottomNavbar from '../../components/layout/BottomNavbar'
 
 const getErrorMessage = (error) => error?.data?.message || error?.error || error?.message || 'Unable to add this garment to your cart.'
 
@@ -14,9 +15,9 @@ export default function ProductDetailPage() {
     const { productId } = useParams()
     const navigate = useNavigate()
     const isAuthenticated = useSelector(selectIsAuthenticated)
+    const user = useSelector((state) => state.auth.user)
     const { data: garment, isLoading, isError } = useGetProductByIdQuery(productId)
     const { data: fabrics = [] } = useGetFabricsQuery()
-    const [addToCart, { isLoading: adding }] = useAddToCartMutation()
     const [message, setMessage] = useState('')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedDesignId, setSelectedDesignId] = useState('')
@@ -49,14 +50,17 @@ export default function ProductDetailPage() {
             return
         }
         try {
-            await addToCart({
+            addLocalCartItem(user, {
                 garmentId: garment.id,
                 designId: selectedDesignId || null,
                 fabricId: selectedFabricId || null,
                 quantity: 1,
                 measurementSnapshot: measurementSnapshot.trim() || null,
                 customizationDetails: customizationDetails.trim() || null,
-            }).unwrap()
+                garment,
+                design: garment.designs?.find((design) => String(design.id || design._id) === String(selectedDesignId)) || null,
+                fabric: fabrics.find((fabric) => String(fabric.id || fabric._id) === String(selectedFabricId)) || null,
+            })
             setIsModalOpen(false)
             setMessage('Added to cart. Continue to your cart to checkout.')
         } catch (error) {
@@ -97,6 +101,7 @@ export default function ProductDetailPage() {
                     </section>
                 </div>
             </main>
+            <BottomNavbar />
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsModalOpen(false) }}>
                     <section role="dialog" aria-modal="true" aria-labelledby="add-to-cart-title" className="max-h-[min(780px,calc(100vh-2rem))] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
@@ -131,7 +136,7 @@ export default function ProductDetailPage() {
                             <div><label htmlFor="measurements" className="text-sm font-semibold">Measurements or notes</label><textarea id="measurements" value={measurementSnapshot} onChange={(event) => setMeasurementSnapshot(event.target.value)} rows="4" placeholder="Enter your measurements or measurement notes" className="admin-input mt-2" /></div>
                             <div><label htmlFor="customization" className="text-sm font-semibold">Customization requests</label><textarea id="customization" value={customizationDetails} onChange={(event) => setCustomizationDetails(event.target.value)} rows="4" placeholder="Color, fit, monogram, or other requests" className="admin-input mt-2" /></div>
                         </div>
-                        <button type="button" onClick={handleAddToCart} disabled={adding} className="mt-7 w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white disabled:opacity-50">{adding ? 'Adding...' : 'Add to cart'}</button>
+                        <button type="button" onClick={handleAddToCart} className="mt-7 w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white">Add to cart</button>
                     </section>
                 </div>,
                 document.body,
