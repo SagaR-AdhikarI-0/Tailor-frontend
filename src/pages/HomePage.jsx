@@ -6,6 +6,7 @@ import BottomNavbar from '../../components/layout/BottomNavbar'
 import { selectIsAuthenticated } from '../features/auth/authSlice'
 import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
 import { useGetProductsQuery } from '../features/products/productApi'
+import tailorImage from '../assets/tailor.png'
 
 function HomePage() {
     const isAuthenticated = useSelector(selectIsAuthenticated)
@@ -74,6 +75,16 @@ function HomePage() {
                     </div>
                 )}
                 <Link to="/products" className="mt-10 block text-center text-xs font-semibold uppercase tracking-[0.2em] text-stone-600 underline decoration-stone-300 underline-offset-8 sm:hidden">View all pieces</Link>
+            </section>
+
+            <section className="relative overflow-hidden bg-[#e8e0d7]">
+                <div className="flex min-h-[560px] items-end justify-center px-4 pt-10 sm:min-h-[740px] sm:pt-14 md:min-h-[900px]">
+                    <img src={tailorImage} alt="A tailor taking a customer's measurements" className="h-[540px] w-auto object-contain sm:h-[720px] md:h-[880px]" />
+                </div>
+                <div className="mx-auto grid max-w-6xl gap-3 px-6 pb-8 sm:grid-cols-2 sm:px-10 md:absolute md:inset-x-0 md:bottom-8 md:pb-0">
+                    <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600 sm:text-left">Measured for your life.</p>
+                    <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600 sm:text-right">Cut around you.</p>
+                </div>
             </section>
 
             <section className="border-t border-stone-200 bg-[#e9e3db]">
