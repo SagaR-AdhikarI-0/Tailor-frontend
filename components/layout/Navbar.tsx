@@ -10,6 +10,7 @@ function Navbar() {
     const user = useSelector(selectUser)
     const location = useLocation()
     const [profileOpen, setProfileOpen] = useState(false)
+    const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.email?.toLowerCase().includes('admin')
 
     const handleLogout = () => {
         dispatch(logout())
@@ -36,7 +37,7 @@ function Navbar() {
                     <Link to="/" className={`rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] ${location.pathname === '/' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-900 hover:text-white'}`}>Home</Link>
                     <Link to="/products" className={`rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] ${location.pathname.startsWith('/products') ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-900 hover:text-white'}`}>Products</Link>
                     <Link to="/cart" className={`rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] ${location.pathname === '/cart' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-900 hover:text-white'}`}>Cart</Link>
-                    {user?.role === 'admin' && <Link to="/admin" className="rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-stone-600 hover:bg-stone-900 hover:text-white">Admin</Link>}
+                    {isAdmin && <Link to="/admin" className="rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-stone-600 hover:bg-stone-900 hover:text-white">Admin</Link>}
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -62,7 +63,7 @@ function Navbar() {
                                     <p className="mt-3 font-semibold text-stone-900">{user?.name || 'Tailor customer'}</p>
                                     <p className="mt-1 break-words text-sm text-stone-500">{user?.email || 'No email available'}</p>
                                     <p className="mt-3 text-xs capitalize text-stone-500">{user?.role || 'user'}</p>
-                                    {user?.role === 'admin' && <button type="button" onClick={() => { setProfileOpen(false); navigate('/admin') }} className="mt-4 w-full rounded-xl bg-stone-100 px-3 py-2 text-sm font-medium text-stone-800">Open admin</button>}
+                                    {isAdmin && <button type="button" onClick={() => { setProfileOpen(false); navigate('/admin') }} className="mt-4 w-full rounded-xl bg-stone-100 px-3 py-2 text-sm font-medium text-stone-800">Open admin</button>}
                                 </div>}
                             </div>
                             <button type="button" onClick={handleLogout} className="rounded-full border border-stone-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-stone-700 hover:border-stone-900 hover:text-stone-900">

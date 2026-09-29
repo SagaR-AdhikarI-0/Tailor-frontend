@@ -21,7 +21,16 @@ function LoginPage() {
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            const redirectTo = location.state?.from || (user.role === 'admin' ? '/admin' : '/user')
+            const isAdmin = user.role?.toLowerCase() === 'admin' || user.email?.toLowerCase().includes('admin')
+            const from = location.state?.from
+
+            let redirectTo
+            if (isAdmin) {
+                redirectTo = from && from.startsWith('/admin') ? from : '/admin'
+            } else {
+                redirectTo = from && !from.startsWith('/admin') ? from : '/'
+            }
+
             navigate(redirectTo, { replace: true })
         }
     }, [isAuthenticated, user, location.state, navigate])
@@ -49,6 +58,14 @@ function LoginPage() {
                     refreshToken: result.refreshToken,
                 }),
             )
+
+            const isAdmin = result.user?.role?.toLowerCase() === 'admin' || result.user?.email?.toLowerCase().includes('admin')
+            const from = location.state?.from
+            const destination = isAdmin
+                ? (from && from.startsWith('/admin') ? from : '/admin')
+                : (from && !from.startsWith('/admin') ? from : '/')
+
+            navigate(destination, { replace: true })
         } catch (loginError) {
             setError(loginError.message || 'Login failed. Please try again.')
         } finally {
@@ -104,7 +121,7 @@ function LoginPage() {
 
                 <p className="mt-6 text-center text-sm text-stone-600">
                     Need an account?{' '}
-                    <Link to="/signup" className="font-medium text-stone-900 underline underline-offset-4">
+                    <Link to="/signup" state={location.state} className="font-medium text-stone-900 underline underline-offset-4">
                         Sign up
                     </Link>
                 </p>

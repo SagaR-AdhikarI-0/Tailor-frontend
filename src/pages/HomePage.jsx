@@ -53,7 +53,7 @@ function HomePage() {
                 ) : (
                     <div className="mt-8 grid gap-x-6 gap-y-12 md:grid-cols-12">
                         {products.slice(0, 4).map((product, index) => {
-                            const productPath = product.id ? `/products/${product.id}` : isAuthenticated ? '/user' : '/login'
+                            const productPath = product.id ? `/products/${product.id}` : '/products'
                             const imageUrl = product.iconUrl || product.image || product.imageUrl
                             const isLead = index === 0
                             return (
@@ -77,11 +77,21 @@ function HomePage() {
                 <Link to="/products" className="mt-10 block text-center text-xs font-semibold uppercase tracking-[0.2em] text-stone-600 underline decoration-stone-300 underline-offset-8 sm:hidden">View all pieces</Link>
             </section>
 
-            <section className="relative overflow-hidden bg-[#e8e0d7]">
-                <div className="flex min-h-[560px] items-end justify-center px-4 pt-10 sm:min-h-[740px] sm:pt-14 md:min-h-[900px]">
-                    <img src={tailorImage} alt="A tailor taking a customer's measurements" className="h-[540px] w-auto object-contain sm:h-[720px] md:h-[880px]" />
+            <section className="overflow-hidden bg-[#e8e0d7]">
+                <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24">
+                    <div>
+                        <h2 className="max-w-lg text-4xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-5xl">
+                        Tailored clothes only for you
+                        </h2>
+                        <p className="mt-6 max-w-lg text-base leading-7 text-stone-600">
+                        Every piece begins with your measurements, preferences, and the way you actually live. We cut, stitch, and finish each garment so the fit feels personal — not pulled from a rack, but made around you from the first fitting to the final hem.
+                        </p>
+                    </div>
+                    <div className="flex justify-center md:justify-end">
+                        <img src={tailorImage} alt="A tailor taking a customer's measurements" className="h-auto max-h-[360px] w-full max-w-md object-contain sm:max-h-[440px] lg:max-h-[520px] lg:max-w-lg" />
+                    </div>
                 </div>
-                <div className="mx-auto grid max-w-6xl gap-3 px-6 pb-8 sm:grid-cols-2 sm:px-10 md:absolute md:inset-x-0 md:bottom-8 md:pb-0">
+                <div className="mx-auto grid max-w-6xl gap-3 px-4 pb-10 sm:grid-cols-2 sm:px-6">
                     <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600 sm:text-left">Measured for your life.</p>
                     <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600 sm:text-right">Cut around you.</p>
                 </div>

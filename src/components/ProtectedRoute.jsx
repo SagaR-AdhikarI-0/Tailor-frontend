@@ -11,8 +11,13 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
         return <Navigate to="/login" replace state={{ from: location.pathname }} />
     }
 
-    if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
-        return <Navigate to="/" replace />
+    const userRole = user?.role?.toLowerCase() || (user?.email?.toLowerCase().includes('admin') ? 'admin' : 'user')
+
+    if (allowedRoles.length > 0) {
+        const isAllowed = allowedRoles.some((role) => role.toLowerCase() === userRole)
+        if (!isAllowed) {
+            return <Navigate to={userRole === 'admin' ? '/admin' : '/'} replace />
+        }
     }
 
     return children

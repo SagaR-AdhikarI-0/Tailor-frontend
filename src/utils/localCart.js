@@ -3,9 +3,32 @@ const getCartKey = (user) => `tailor_cart_${user?.id || user?._id || user?.email
 export const getLocalCart = (user) => {
     if (typeof window === 'undefined') return []
     try {
-        const stored = window.localStorage.getItem(getCartKey(user))
-        const parsed = stored ? JSON.parse(stored) : []
-        return Array.isArray(parsed) ? parsed : []
+        const userKey = getCartKey(user)
+        const stored = window.localStorage.getItem(userKey)
+        let parsed = stored ? JSON.parse(stored) : []
+        if (!Array.isArray(parsed)) parsed = []
+
+        if (user && userKey !== 'tailor_cart_guest') {
+            const guestStored = window.localStorage.getItem('tailor_cart_guest')
+            const guestParsed = guestStored ? JSON.parse(guestStored) : []
+            if (Array.isArray(guestParsed) && guestParsed.length > 0) {
+                for (const gItem of guestParsed) {
+                    const existingIndex = parsed.findIndex((i) => i.itemKey === gItem.itemKey)
+                    if (existingIndex >= 0) {
+                        parsed[existingIndex] = {
+                            ...parsed[existingIndex],
+                            quantity: Number(parsed[existingIndex].quantity || 1) + Number(gItem.quantity || 1),
+                        }
+                    } else {
+                        parsed.push(gItem)
+                    }
+                }
+                window.localStorage.setItem(userKey, JSON.stringify(parsed))
+                window.localStorage.removeItem('tailor_cart_guest')
+            }
+        }
+
+        return parsed
     } catch {
         return []
     }

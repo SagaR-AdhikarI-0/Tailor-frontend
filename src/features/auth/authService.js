@@ -3,32 +3,103 @@ const REFRESH_TOKEN_KEY = 'tailor_refresh_token'
 const USER_KEY = 'tailor_user'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5080/api'
 
-const normalizeRole = (value) => {
-    if (!value) return 'user'
-
-    const role = String(value).toLowerCase()
-    if (role.includes('admin')) return 'admin'
-    if (role.includes('customer')) return 'user'
-
-    return role
+export const decodeTokenPayload = (token) => {
+    try {
+        if (!token || typeof token !== 'string') return null
+        const parts = token.split('.')
+        if (parts.length < 2) return null
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+        const json = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        )
+        return JSON.parse(json)
+    } catch {
+        return null
+    }
 }
 
-const normalizeAuthResponse = (payload) => {
+export const normalizeRole = (value, email = '') => {
+    if (Array.isArray(value)) {
+        if (value.some((r) => String(r).toLowerCase().includes('admin'))) {
+            return 'admin'
+        }
+        if (value.some((r) => String(r).toLowerCase().includes('customer') || String(r).toLowerCase().includes('user'))) {
+            return 'user'
+        }
+    }
+
+    if (value) {
+        const role = String(value).toLowerCase()
+        if (role.includes('admin')) return 'admin'
+        if (role.includes('customer') || role.includes('user')) return 'user'
+    }
+
+    if (email && String(email).toLowerCase().includes('admin')) {
+        return 'admin'
+    }
+
+    return 'user'
+}
+
+export const normalizeAuthResponse = (payload) => {
     const rawUser = payload?.user || payload?.data?.user || payload?.data || {}
-    const roles = payload?.roles || rawUser?.roles || []
-    const role = normalizeRole(rawUser?.role || roles[0] || payload?.role)
+    const token = payload?.accessToken || payload?.token || payload?.data?.token || payload?.data?.accessToken || payload?.Token
+    const tokenPayload = decodeTokenPayload(token)
+
+    const tokenRole =
+        tokenPayload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+        tokenPayload?.role ||
+        tokenPayload?.roles
+    const payloadRoles = payload?.roles || payload?.Roles || rawUser?.roles || rawUser?.Roles || payload?.data?.roles
+    const directRole = payload?.role || payload?.Role || rawUser?.role || rawUser?.Role || payload?.data?.role
+
+    const email =
+        payload?.email ||
+        payload?.Email ||
+        rawUser?.email ||
+        rawUser?.Email ||
+        tokenPayload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+        tokenPayload?.email ||
+        ''
+
+    const role =
+        normalizeRole(payloadRoles, email) === 'admin' ||
+        normalizeRole(tokenRole, email) === 'admin' ||
+        normalizeRole(directRole, email) === 'admin'
+            ? 'admin'
+            : normalizeRole(directRole || payloadRoles || tokenRole, email)
 
     const user = {
-        id: rawUser?.id || rawUser?._id || rawUser?.userId || 'unknown',
-        name: rawUser?.fullName || rawUser?.name || rawUser?.email || 'Tailor User',
-        email: rawUser?.email || payload?.email || '',
+        id:
+            rawUser?.id ||
+            rawUser?._id ||
+            rawUser?.userId ||
+            payload?.userId ||
+            payload?.UserId ||
+            payload?.id ||
+            tokenPayload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+            tokenPayload?.sub ||
+            'unknown',
+        name:
+            rawUser?.fullName ||
+            rawUser?.name ||
+            payload?.fullName ||
+            payload?.FullName ||
+            payload?.name ||
+            tokenPayload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+            email ||
+            'Tailor User',
+        email,
         role,
     }
 
     return {
         user,
-        accessToken: payload?.accessToken || payload?.token || payload?.data?.token || payload?.data?.accessToken,
-        refreshToken: payload?.refreshToken || payload?.refresh_token || payload?.data?.refreshToken,
+        accessToken: token,
+        refreshToken: payload?.refreshToken || payload?.refresh_token || payload?.data?.refreshToken || payload?.RefreshToken || token,
     }
 }
 
@@ -66,7 +137,14 @@ export const clearCookie = (name) => {
 export const loadSession = () => {
     const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
     const refreshToken = readCookie('tailor_refresh_token') || localStorage.getItem(REFRESH_TOKEN_KEY)
-    const user = JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+    let user = JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+
+    if (user) {
+        user = {
+            ...user,
+            role: normalizeRole(user.role, user.email),
+        }
+    }
 
     return {
         accessToken,
@@ -132,7 +210,8 @@ export const loginUser = async ({ email, password }) => {
         return normalized
     } catch (error) {
         if (error?.name === 'TypeError') {
-            return mockLogin({ email, password, role: 'user' })
+            const role = email?.toLowerCase().includes('admin') ? 'admin' : 'user'
+            return mockLogin({ email, password, role })
         }
 
         throw error
@@ -146,7 +225,7 @@ export const mockLogin = async ({ email, password, role }) => {
         throw new Error('Email and password are required.')
     }
 
-    const finalRole = normalizeRole(role)
+    const finalRole = normalizeRole(role, email)
     const user = {
         id: finalRole === 'admin' ? 'admin-1' : 'user-1',
         name: finalRole === 'admin' ? 'Admin User' : 'Tailor Customer',

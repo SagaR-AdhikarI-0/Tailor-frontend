@@ -21,22 +21,8 @@ function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:productId" element={<ProductDetailPage />} />
-      <Route
-        path="/user"
-        element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
-            <Navigate to="/" replace />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/cart"
-        element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
-            <CartPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/user" element={<Navigate to="/" replace />} />
+      <Route path="/cart" element={<CartPage />} />
       <Route
         path="/checkout"
         element={

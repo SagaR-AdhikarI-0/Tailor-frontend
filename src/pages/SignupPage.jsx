@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BottomNavbar from '../../components/layout/BottomNavbar'
 
 function SignupPage() {
     const navigate = useNavigate()
+    const location = useLocation()
     const [form, setForm] = useState({
         fullName: '',
         email: '',
@@ -53,7 +54,7 @@ function SignupPage() {
                 throw new Error(data?.message || 'Registration failed.')
             }
 
-            navigate('/login')
+            navigate('/login', { state: location.state })
         } catch (signupError) {
             setError(signupError.message || 'Unable to create account.')
         } finally {
@@ -133,7 +134,7 @@ function SignupPage() {
 
                 <p className="mt-6 text-center text-sm text-stone-600">
                     Already have an account?{' '}
-                    <Link to="/login" className="font-medium text-stone-900 underline underline-offset-4">
+                    <Link to="/login" state={location.state} className="font-medium text-stone-900 underline underline-offset-4">
                         Log in
                     </Link>
                 </p>

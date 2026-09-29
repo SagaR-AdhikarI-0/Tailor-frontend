@@ -45,22 +45,27 @@ export default function ProductDetailPage() {
 
     const imageUrl = garment.iconUrl || garment.image || garment.imageUrl
     const handleAddToCart = async () => {
+        const itemData = {
+            garmentId: garment.id,
+            designId: selectedDesignId || null,
+            fabricId: selectedFabricId || null,
+            quantity: 1,
+            measurementSnapshot: measurementSnapshot.trim() || null,
+            customizationDetails: customizationDetails.trim() || null,
+            garment,
+            design: garment.designs?.find((design) => String(design.id || design._id) === String(selectedDesignId)) || null,
+            fabric: fabrics.find((fabric) => String(fabric.id || fabric._id) === String(selectedFabricId)) || null,
+        }
+
         if (!isAuthenticated) {
-            navigate('/login')
+            addLocalCartItem(null, itemData)
+            setIsModalOpen(false)
+            navigate('/login', { state: { from: '/cart' } })
             return
         }
+
         try {
-            addLocalCartItem(user, {
-                garmentId: garment.id,
-                designId: selectedDesignId || null,
-                fabricId: selectedFabricId || null,
-                quantity: 1,
-                measurementSnapshot: measurementSnapshot.trim() || null,
-                customizationDetails: customizationDetails.trim() || null,
-                garment,
-                design: garment.designs?.find((design) => String(design.id || design._id) === String(selectedDesignId)) || null,
-                fabric: fabrics.find((fabric) => String(fabric.id || fabric._id) === String(selectedFabricId)) || null,
-            })
+            addLocalCartItem(user, itemData)
             setIsModalOpen(false)
             setMessage('Added to cart. Continue to your cart to checkout.')
         } catch (error) {
@@ -88,8 +93,8 @@ export default function ProductDetailPage() {
                                 </div>
                                 <div className="mt-auto pt-8">
                                     {message && <p className="mb-4 rounded-2xl bg-stone-100 p-3 text-sm text-stone-700">{message}</p>}
-                                    <button type="button" onClick={() => isAuthenticated ? setIsModalOpen(true) : navigate('/login')} className="w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white hover:bg-stone-700">{isAuthenticated ? 'Add to cart' : 'Login to order'}</button>
-                                    {isAuthenticated && <button type="button" onClick={() => navigate('/cart')} className="mt-3 w-full rounded-full border border-stone-200 px-4 py-3 text-sm font-medium hover:border-stone-900">View cart</button>}
+                                    <button type="button" onClick={() => setIsModalOpen(true)} className="w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white hover:bg-stone-700">Add to cart</button>
+                                    <button type="button" onClick={() => navigate('/cart')} className="mt-3 w-full rounded-full border border-stone-200 px-4 py-3 text-sm font-medium hover:border-stone-900">View cart</button>
                                 </div>
                             </div>
                         </div>
@@ -136,7 +141,7 @@ export default function ProductDetailPage() {
                             <div><label htmlFor="measurements" className="text-sm font-semibold">Measurements or notes</label><textarea id="measurements" value={measurementSnapshot} onChange={(event) => setMeasurementSnapshot(event.target.value)} rows="4" placeholder="Enter your measurements or measurement notes" className="admin-input mt-2" /></div>
                             <div><label htmlFor="customization" className="text-sm font-semibold">Customization requests</label><textarea id="customization" value={customizationDetails} onChange={(event) => setCustomizationDetails(event.target.value)} rows="4" placeholder="Color, fit, monogram, or other requests" className="admin-input mt-2" /></div>
                         </div>
-                        <button type="button" onClick={handleAddToCart} className="mt-7 w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white">Add to cart</button>
+                        <button type="button" onClick={handleAddToCart} className="mt-7 w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white hover:bg-stone-700">{isAuthenticated ? 'Add to cart' : 'Sign in to add to cart'}</button>
                     </section>
                 </div>,
                 document.body,
