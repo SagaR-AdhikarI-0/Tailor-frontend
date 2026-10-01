@@ -43,10 +43,10 @@ export default function AdminShell({ children, title, eyebrow }) {
             <div className="flex min-h-screen w-full">
                 <AdminSidebar />
                 <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
-                    <nav className="mb-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#1a1a1a] p-2 lg:hidden">
+                    <nav className="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white p-2 lg:hidden">
                         {adminLinks.map((link) => {
                             const active = location.pathname === link.to
-                            return <Link key={link.to} to={link.to} className={`shrink-0 rounded-xl px-3 py-2 text-sm font-medium ${active ? 'bg-white text-stone-900' : 'text-stone-300'}`}>{link.label}</Link>
+                            return <Link key={link.to} to={link.to} className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${active ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100'}`}><span aria-hidden="true">{link.icon}</span>{link.label}</Link>
                         })}
                     </nav>
                     <header className="mb-8 border-b border-stone-200 pb-6">
