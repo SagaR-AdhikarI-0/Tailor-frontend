@@ -11,7 +11,7 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
         return <Navigate to="/login" replace state={{ from: location.pathname }} />
     }
 
-    const userRole = user?.role?.toLowerCase() || (user?.email?.toLowerCase().includes('admin') ? 'admin' : 'user')
+    const userRole = user?.role?.toLowerCase() || 'user'
 
     if (allowedRoles.length > 0) {
         const isAllowed = allowedRoles.some((role) => role.toLowerCase() === userRole)

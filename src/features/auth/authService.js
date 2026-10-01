@@ -21,7 +21,12 @@ export const decodeTokenPayload = (token) => {
     }
 }
 
-export const normalizeRole = (value, email = '') => {
+export const isValidAccessToken = (token) => {
+    const payload = decodeTokenPayload(token)
+    return Boolean(payload && (!payload.exp || payload.exp * 1000 > Date.now()))
+}
+
+export const normalizeRole = (value) => {
     if (Array.isArray(value)) {
         if (value.some((r) => String(r).toLowerCase().includes('admin'))) {
             return 'admin'
@@ -35,10 +40,6 @@ export const normalizeRole = (value, email = '') => {
         const role = String(value).toLowerCase()
         if (role.includes('admin')) return 'admin'
         if (role.includes('customer') || role.includes('user')) return 'user'
-    }
-
-    if (email && String(email).toLowerCase().includes('admin')) {
-        return 'admin'
     }
 
     return 'user'
@@ -67,8 +68,8 @@ export const normalizeAuthResponse = (payload) => {
 
     const role =
         normalizeRole(payloadRoles, email) === 'admin' ||
-        normalizeRole(tokenRole, email) === 'admin' ||
-        normalizeRole(directRole, email) === 'admin'
+            normalizeRole(tokenRole, email) === 'admin' ||
+            normalizeRole(directRole, email) === 'admin'
             ? 'admin'
             : normalizeRole(directRole || payloadRoles || tokenRole, email)
 
@@ -135,9 +136,19 @@ export const clearCookie = (name) => {
 }
 
 export const loadSession = () => {
-    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
+    const storedAccessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
+    const accessToken = isValidAccessToken(storedAccessToken) ? storedAccessToken : null
     const refreshToken = readCookie('tailor_refresh_token') || localStorage.getItem(REFRESH_TOKEN_KEY)
     let user = JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+
+    if (!accessToken && storedAccessToken) {
+        clearSession()
+        return {
+            accessToken: null,
+            refreshToken: null,
+            user: null,
+        }
+    }
 
     if (user) {
         user = {
@@ -209,53 +220,7 @@ export const loginUser = async ({ email, password }) => {
 
         return normalized
     } catch (error) {
-        if (error?.name === 'TypeError') {
-            const role = email?.toLowerCase().includes('admin') ? 'admin' : 'user'
-            return mockLogin({ email, password, role })
-        }
-
+        clearSession()
         throw error
     }
-}
-
-export const mockLogin = async ({ email, password, role }) => {
-    await new Promise((resolve) => setTimeout(resolve, 600))
-
-    if (!email || !password) {
-        throw new Error('Email and password are required.')
-    }
-
-    const finalRole = normalizeRole(role, email)
-    const user = {
-        id: finalRole === 'admin' ? 'admin-1' : 'user-1',
-        name: finalRole === 'admin' ? 'Admin User' : 'Tailor Customer',
-        email,
-        role: finalRole,
-    }
-
-    const accessToken = `access_${Date.now()}_${finalRole}`
-    const refreshToken = `refresh_${Date.now()}_${finalRole}`
-
-    saveSession({ accessToken, refreshToken, user })
-
-    return {
-        user,
-        accessToken,
-        refreshToken,
-    }
-}
-
-export const mockRefreshToken = async () => {
-    const refreshToken = readCookie('tailor_refresh_token') || localStorage.getItem(REFRESH_TOKEN_KEY)
-
-    if (!refreshToken) {
-        return null
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 400))
-
-    const newAccessToken = `access_${Date.now()}_refreshed`
-    localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken)
-
-    return newAccessToken
 }

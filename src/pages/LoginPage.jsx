@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { setCredentials, selectIsAuthenticated, selectUser } from '../features/auth/authSlice'
 import { loginUser } from '../features/auth/authService'
-import BottomNavbar from '../../components/layout/BottomNavbar'
 
 function LoginPage() {
     const dispatch = useDispatch()
@@ -13,15 +12,15 @@ function LoginPage() {
     const user = useSelector(selectUser)
 
     const [form, setForm] = useState({
-        email: 'admin@tailor.com',
-        password: '123456',
+        email: '',
+        password: '',
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            const isAdmin = user.role?.toLowerCase() === 'admin' || user.email?.toLowerCase().includes('admin')
+            const isAdmin = user.role?.toLowerCase() === 'admin'
             const from = location.state?.from
 
             let redirectTo
@@ -59,7 +58,7 @@ function LoginPage() {
                 }),
             )
 
-            const isAdmin = result.user?.role?.toLowerCase() === 'admin' || result.user?.email?.toLowerCase().includes('admin')
+            const isAdmin = result.user?.role?.toLowerCase() === 'admin'
             const from = location.state?.from
             const destination = isAdmin
                 ? (from && from.startsWith('/admin') ? from : '/admin')
@@ -126,7 +125,6 @@ function LoginPage() {
                     </Link>
                 </p>
             </div>
-            <BottomNavbar />
         </div>
     )
 }

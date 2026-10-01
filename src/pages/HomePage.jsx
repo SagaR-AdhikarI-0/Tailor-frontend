@@ -7,6 +7,7 @@ import { selectIsAuthenticated } from '../features/auth/authSlice'
 import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
 import { useGetProductsQuery } from '../features/products/productApi'
 import tailorImage from '../assets/tailor.png'
+import fabricImage from '../assets/fabric.png'
 
 function HomePage() {
     const isAuthenticated = useSelector(selectIsAuthenticated)
@@ -81,10 +82,10 @@ function HomePage() {
                 <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24">
                     <div>
                         <h2 className="max-w-lg text-4xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-5xl">
-                        Tailored clothes only for you
+                            Tailored clothes only for you
                         </h2>
                         <p className="mt-6 max-w-lg text-base leading-7 text-stone-600">
-                        Every piece begins with your measurements, preferences, and the way you actually live. We cut, stitch, and finish each garment so the fit feels personal — not pulled from a rack, but made around you from the first fitting to the final hem.
+                            Every piece begins with your measurements, preferences, and the way you actually live. We cut, stitch, and finish each garment so the fit feels personal — not pulled from a rack, but made around you from the first fitting to the final hem.
                         </p>
                     </div>
                     <div className="flex justify-center md:justify-end">
@@ -123,18 +124,9 @@ function HomePage() {
                 </div>
             </section>
 
-            <section className="overflow-hidden bg-[#f4efe9]">
+            <section className="overflow-hidden  bg-white">
                 <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-20 lg:py-28">
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                        {fabrics.filter((fabric) => fabric.isActive !== false).slice(0, 3).map((fabric, index) => {
-                            const imageUrl = fabric.imageUrl || fabric.image || fabric.iconUrl
-                            return <div key={fabric.id || fabric._id || index} className={`group relative overflow-hidden bg-stone-200 ${index === 1 ? 'mt-8 sm:mt-12' : ''}`}>
-                                <div className="aspect-[0.72/1]">{imageUrl ? <img src={imageUrl} alt={fabric.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /> : <div className="h-full w-full bg-stone-300" />}</div>
-                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/70 to-transparent p-4 pt-12 text-white"><p className="text-sm font-medium">{fabric.name}</p><p className="mt-1 text-xs text-white/70">{fabric.color || fabric.category || 'Atelier fabric'}</p></div>
-                            </div>
-                        })}
-                        {fabrics.filter((fabric) => fabric.isActive !== false).length === 0 && <div className="col-span-full flex aspect-[2/1] items-center justify-center bg-stone-200 text-sm text-stone-500">Our fabric selection is being prepared.</div>}
-                    </div>
+                    <img src={fabricImage} alt="Fabric Image" />
 
                     <div className="max-w-md">
                         <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">The fabric library</p>
