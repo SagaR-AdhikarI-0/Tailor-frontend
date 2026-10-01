@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { logout } from '../features/auth/authSlice'
@@ -29,7 +29,8 @@ function AdminPage() {
     const [form, setForm] = useState(initialForm)
     const [submitMessage, setSubmitMessage] = useState('')
     const [imagePreview, setImagePreview] = useState('')
-    const orders = Array.isArray(orderData) ? orderData : []
+    const [salesRange, setSalesRange] = useState('30d')
+    const orders = Array.isArray(orderData) ? orderData : orderData.items || orderData.orders || []
     const activeOrders = orders.filter((order) => !['completed', 'cancelled', 'canceled'].includes(String(order.status || '').toLowerCase())).length
     const revenue = orders.reduce((total, order) => total + Number(order.total ?? order.totalAmount ?? order.amount ?? 0), 0)
     const totalDesigns = designs.length || garments.reduce((total, garment) => total + (garment.designs?.length || 0), 0)
@@ -142,6 +143,8 @@ function AdminPage() {
                                 </div>
                             ))}
                         </div>
+
+                        <SalesLineChart orders={orders} range={salesRange} onRangeChange={setSalesRange} />
 
                         <div className="mt-6 flex flex-wrap gap-3">
                             <button type="button" onClick={() => navigate('/admin/garments')} className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white">New garment</button>
@@ -366,6 +369,111 @@ function AdminPage() {
             </div>
         </div>
     )
+}
+
+function SalesLineChart({ orders, range, onRangeChange }) {
+    const chart = useMemo(() => {
+        const now = new Date()
+        const isYearly = range === '12m'
+        const pointCount = isYearly ? 12 : range === '7d' ? 7 : 30
+        const buckets = Array.from({ length: pointCount }, (_, index) => {
+            const date = new Date(now)
+            if (isYearly) {
+                date.setMonth(now.getMonth() - (pointCount - 1 - index), 1)
+            } else {
+                date.setDate(now.getDate() - (pointCount - 1 - index))
+                date.setHours(0, 0, 0, 0)
+            }
+            return { date, value: 0 }
+        })
+
+        orders.forEach((order) => {
+            const orderDate = new Date(order.orderDate || order.createdAt || order.date)
+            if (Number.isNaN(orderDate.getTime())) return
+
+            const bucket = isYearly
+                ? buckets.find((item) => item.date.getFullYear() === orderDate.getFullYear() && item.date.getMonth() === orderDate.getMonth())
+                : buckets.find((item) => item.date.toDateString() === orderDate.toDateString())
+
+            if (bucket) bucket.value += Number(order.totalAmount ?? order.total ?? order.amount ?? 0)
+        })
+
+        const maximum = Math.max(...buckets.map((item) => item.value), 1)
+        const width = 760
+        const height = 300
+        const padding = { top: 18, right: 20, bottom: 42, left: 52 }
+        const graphWidth = width - padding.left - padding.right
+        const graphHeight = height - padding.top - padding.bottom
+        const points = buckets.map((item, index) => ({
+            ...item,
+            x: padding.left + (index / Math.max(pointCount - 1, 1)) * graphWidth,
+            y: padding.top + graphHeight - (item.value / maximum) * graphHeight,
+        }))
+
+        return { buckets, maximum, points, width, height, padding, graphHeight, graphWidth }
+    }, [orders, range])
+
+    const linePath = chart.points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+    const areaPath = `${linePath} L ${chart.points.at(-1).x} ${chart.height - chart.padding.bottom} L ${chart.points[0].x} ${chart.height - chart.padding.bottom} Z`
+    const formatCurrency = (value) => `$${Math.round(value).toLocaleString()}`
+    const rangeLabel = range === '12m' ? 'Last 12 months' : range === '7d' ? 'Last 7 days' : 'Last 30 days'
+
+    return (
+        <section className="mt-8 rounded-3xl border border-stone-200 bg-stone-50 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">Sales performance</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-stone-900">Revenue over time</h2>
+                    <p className="mt-1 text-sm text-stone-500">{rangeLabel} · {formatCurrency(chart.buckets.reduce((total, item) => total + item.value, 0))} recorded</p>
+                </div>
+                <div className="flex rounded-xl border border-stone-200 bg-white p-1">
+                    {[
+                        ['7d', '7D'],
+                        ['30d', '30D'],
+                        ['12m', '12M'],
+                    ].map(([value, label]) => (
+                        <button key={value} type="button" onClick={() => onRangeChange(value)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold tracking-[0.12em] transition ${range === value ? 'bg-stone-900 text-white' : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900'}`}>
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="mt-6 overflow-x-auto">
+                <svg viewBox={`0 0 ${chart.width} ${chart.height}`} className="min-w-[620px] w-full" role="img" aria-label={`Sales line chart for ${rangeLabel}`}>
+                    {[0, 1, 2, 3, 4].map((step) => {
+                        const y = chart.padding.top + (step / 4) * chart.graphHeight
+                        const value = chart.maximum - (step / 4) * chart.maximum
+                        return (
+                            <g key={step}>
+                                <line x1={chart.padding.left} x2={chart.width - chart.padding.right} y1={y} y2={y} stroke="#d6d3d1" strokeDasharray="3 6" />
+                                <text x={chart.padding.left - 10} y={y + 4} textAnchor="end" className="fill-stone-400 text-[10px]">{formatCurrency(value)}</text>
+                            </g>
+                        )
+                    })}
+                    <path d={areaPath} fill="url(#salesFill)" />
+                    <path d={linePath} fill="none" stroke="#1c1917" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+                    {chart.points.map((point, index) => (
+                        <g key={`${point.date.toISOString()}-${index}`}>
+                            <circle cx={point.x} cy={point.y} r="5" fill="#f5f5f4" stroke="#1c1917" strokeWidth="2" />
+                            <title>{`${point.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: ${formatCurrency(point.value)}`}</title>
+                            {(index === 0 || index === chart.points.length - 1 || (chart.points.length > 10 && index % Math.ceil(chart.points.length / 6) === 0)) && <text x={point.x} y={chart.height - 14} textAnchor="middle" className="fill-stone-400 text-[10px]">{point.date.toLocaleDateString(undefined, { month: 'short', day: isYearlyLabel(range) ? undefined : 'numeric' })}</text>}
+                        </g>
+                    ))}
+                    <defs>
+                        <linearGradient id="salesFill" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stopColor="#78716c" stopOpacity="0.24" />
+                            <stop offset="100%" stopColor="#78716c" stopOpacity="0" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+    )
+}
+
+function isYearlyLabel(range) {
+    return range === '12m'
 }
 
 export default AdminPage

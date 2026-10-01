@@ -8,7 +8,7 @@ export default function AdminSidebar() {
     const user = useSelector(selectUser)
 
     return (
-        <aside className="hidden w-72 shrink-0 border-r border-stone-200 bg-white p-6 text-stone-900 lg:block">
+        <aside className="hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-stone-200 bg-white p-6 text-stone-900 lg:sticky lg:top-0 lg:block">
             <Link to="/admin" className="mb-10 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold tracking-[0.2em] text-white">AR</div>
                 <div>

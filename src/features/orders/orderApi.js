@@ -29,7 +29,7 @@ export const orderApi = baseApi.injectEndpoints({
         }),
         getAdminOrders: builder.query({
             query: () => ({
-                url: '/orders',
+                url: '/admin/order',
                 method: 'GET',
                 requireAuth: true,
             }),
@@ -37,7 +37,7 @@ export const orderApi = baseApi.injectEndpoints({
         }),
         updateOrderStatus: builder.mutation({
             query: ({ id, status }) => ({
-                url: `/orders/${id}/status`,
+                url: `/admin/order/${id}/status`,
                 method: 'PATCH',
                 body: { status },
                 requireAuth: true,
