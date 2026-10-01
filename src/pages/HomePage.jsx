@@ -11,8 +11,10 @@ function HomePage() {
 
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
-            <Navbar />
-            <FashionHero />
+            <div className="overflow-hidden rounded-b-[28px] bg-[#f4efe9]">
+                <Navbar />
+                <FashionHero />
+            </div>
 
             <section className="relative overflow-hidden border-y border-stone-300 bg-[#d8e0d7]">
                 <div className="absolute -right-16 top-10 h-48 w-48 rounded-full border border-stone-400/50 sm:right-16 sm:h-64 sm:w-64" aria-hidden="true" />

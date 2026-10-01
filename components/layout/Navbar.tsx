@@ -18,7 +18,7 @@ function Navbar() {
     }
 
     return (
-        <header className="border-b border-stone-200 bg-[#f8f3ee]/90 backdrop-blur-md">
+        <header className="bg-[#f4efe9] pt-3 sm:pt-5">
             <nav
                 aria-label="Main Navigation"
                 className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8"
