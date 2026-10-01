@@ -6,7 +6,7 @@ import rightLastModel from '../../src/assets/right_last.png'
 
 function FashionHero() {
     return (
-        <section className="relative min-h-[680px] overflow-hidden rounded-b-[28px] bg-[#f4efe9] px-4 pt-12 sm:px-6 sm:pt-14">
+        <section className="relative min-h-[760px] overflow-hidden rounded-b-[28px] bg-[#f4efe9] px-4 pt-12 sm:min-h-[820px] sm:px-6 sm:pt-14">
 
             {/* Content */}
             <div className="relative z-10 mx-auto max-w-5xl text-center">
@@ -31,13 +31,13 @@ function FashionHero() {
             </div>
 
             {/* Models */}
-            <div className="relative z-10 mx-auto mt-6 flex h-[470px] max-w-[1100px] items-end justify-center gap-1 sm:mt-8 sm:gap-2">
+            <div className="relative z-10 mx-auto mt-8 flex h-[540px] max-w-[1200px] items-end justify-center gap-1 sm:mt-10 sm:gap-2">
 
                 {/* 1 — leans LEFT */}
                 <div
                     className="
       relative
-    h-[320px] w-[19%]
+    h-[370px] w-[19%]
       -rotate-[4deg]
       origin-bottom
       overflow-hidden
@@ -63,7 +63,7 @@ function FashionHero() {
                 <div
                     className="
       relative
-    h-[410px] w-[19%]
+    h-[470px] w-[19%]
       -rotate-[2deg]
       origin-bottom
       overflow-hidden
@@ -89,7 +89,7 @@ function FashionHero() {
                 <div
                     className="
       relative
-    h-[470px] w-[20%]
+    h-[540px] w-[20%]
       rotate-0
       origin-bottom
       overflow-hidden
@@ -115,7 +115,7 @@ function FashionHero() {
                 <div
                     className="
       relative
-    h-[410px] w-[19%]
+    h-[470px] w-[19%]
       rotate-[2deg]
       origin-bottom
       overflow-hidden
@@ -141,7 +141,7 @@ function FashionHero() {
                 <div
                     className="
       relative
-    h-[320px] w-[19%]
+    h-[370px] w-[19%]
       rotate-[4deg]
       origin-bottom
       overflow-hidden

@@ -1,23 +1,74 @@
 import { Link } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 import FashionHero from '../../components/layout/Hero'
 import Navbar from '../../components/layout/Navbar'
 import BottomNavbar from '../../components/layout/BottomNavbar'
-import { selectIsAuthenticated } from '../features/auth/authSlice'
-import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
 import { useGetProductsQuery } from '../features/products/productApi'
 import tailorImage from '../assets/tailor.png'
 import fabricImage from '../assets/fabric.png'
 
 function HomePage() {
-    const isAuthenticated = useSelector(selectIsAuthenticated)
     const { data: products = [], isLoading } = useGetProductsQuery({ page: 1, limit: 4 })
-    const { data: fabrics = [] } = useGetFabricsQuery()
 
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
             <Navbar />
             <FashionHero />
+
+            <section className="relative overflow-hidden border-y border-stone-300 bg-[#d8e0d7]">
+                <div className="absolute -right-16 top-10 h-48 w-48 rounded-full border border-stone-400/50 sm:right-16 sm:h-64 sm:w-64" aria-hidden="true" />
+                <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+                    <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
+                        <div>
+                            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-stone-600">
+                                <span className="h-px w-8 bg-stone-500" />
+                                The workbench
+                            </div>
+                            <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[0.98] tracking-tight text-stone-900 sm:text-6xl">
+                                The beauty is in the details.
+                            </h2>
+                            <p className="mt-6 max-w-md text-base leading-7 text-stone-700">
+                                A little glimpse behind the finished piece: measured, cut, and finished with the kind of care you can feel.
+                            </p>
+                            <Link to="/products" className="mt-8 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-stone-800 underline decoration-stone-500 underline-offset-8 transition hover:gap-5">
+                                Enter the atelier <span aria-hidden="true">↗</span>
+                            </Link>
+                        </div>
+
+                        <div className="relative grid border-l border-stone-400/70 sm:grid-cols-3">
+                            <div className="group relative border-b border-stone-400/70 px-5 pb-8 pt-2 transition hover:-translate-y-2 sm:border-b-0 sm:border-r sm:px-6 sm:pt-8">
+                                <span className="absolute -left-[5px] top-0 h-2.5 w-2.5 rounded-full bg-stone-800 sm:top-8" />
+                                <span className="text-4xl leading-none text-stone-800" aria-hidden="true">✂</span>
+                                <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.25em] text-stone-600">01 / Cut</p>
+                                <h3 className="mt-3 text-xl font-semibold text-stone-900">Shape the idea</h3>
+                                <p className="mt-3 text-sm leading-6 text-stone-700">A clean silhouette starts with a confident cut.</p>
+                            </div>
+                            <div className="group relative border-b border-stone-400/70 px-5 pb-8 pt-8 transition hover:-translate-y-2 sm:border-b-0 sm:border-r sm:px-6">
+                                <span className="absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full bg-stone-800" />
+                                <span className="text-4xl leading-none text-stone-800" aria-hidden="true">↕</span>
+                                <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.25em] text-stone-600">02 / Fit</p>
+                                <h3 className="mt-3 text-xl font-semibold text-stone-900">Find the line</h3>
+                                <p className="mt-3 text-sm leading-6 text-stone-700">Every measurement brings the garment closer to you.</p>
+                            </div>
+                            <div className="group relative px-5 pb-2 pt-8 transition hover:-translate-y-2 sm:px-6">
+                                <span className="absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full bg-stone-800" />
+                                <span className="text-4xl leading-none text-stone-800" aria-hidden="true">✦</span>
+                                <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.25em] text-stone-600">03 / Finish</p>
+                                <h3 className="mt-3 text-xl font-semibold text-stone-900">Make it yours</h3>
+                                <p className="mt-3 text-sm leading-6 text-stone-700">The final details are where personality shows.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-14 flex flex-wrap items-center gap-3 border-t border-dashed border-stone-400/80 pt-5 text-xs font-medium uppercase tracking-[0.2em] text-stone-600">
+                        <span>Current palette</span>
+                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#c9b8a6]" aria-label="Warm taupe swatch" />
+                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#899b93]" aria-label="Sage swatch" />
+                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#b88d83]" aria-label="Rosewood swatch" />
+                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#33413f]" aria-label="Deep green swatch" />
+                        <span className="ml-auto hidden italic normal-case tracking-normal text-stone-500 sm:block">Nothing ordinary.</span>
+                    </div>
+                </div>
+            </section>
 
             <section className="border-b border-stone-200 bg-[#f0ebe4]">
                 <div className="mx-auto grid max-w-6xl divide-y divide-stone-300 px-4 py-8 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4 lg:px-6">

@@ -7,6 +7,7 @@ import {
     useGetGarmentsQuery,
     useUpdateGarmentMutation,
 } from '../../features/products/productApi'
+import { uploadImage } from '../../utils/uploadImage'
 
 const emptyForm = {
     name: '',
@@ -28,6 +29,7 @@ export default function GarmentsPage() {
     const [editingId, setEditingId] = useState(null)
     const [message, setMessage] = useState('')
     const [imageUploading, setImageUploading] = useState(false)
+    const [imageFile, setImageFile] = useState(null)
     const [imageError, setImageError] = useState('')
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
@@ -79,17 +81,24 @@ export default function GarmentsPage() {
         }
 
         try {
+            setImageUploading(true)
+            const iconUrl = imageFile ? await uploadImage(imageFile) : form.iconUrl.trim() || null
+            body.iconUrl = iconUrl
             if (editingId) await updateGarment({ id: editingId, ...body }).unwrap()
             else await createGarment(body).unwrap()
             setMessage(editingId ? 'Garment updated.' : 'Garment created.')
             resetForm()
+            setImageFile(null)
         } catch (error) {
             setMessage(getErrorMessage(error))
+        } finally {
+            setImageUploading(false)
         }
     }
 
     const startEditing = (garment) => {
         setEditingId(garment.id)
+        setImageFile(null)
         setForm({
             name: garment.name || '',
             category: garment.category || '',
@@ -144,7 +153,7 @@ export default function GarmentsPage() {
                         <input name="name" value={form.name} onChange={handleChange} required placeholder="Name" className="admin-input" />
                         <input name="category" value={form.category} onChange={handleChange} required placeholder="Category" className="admin-input" />
                         <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" rows="3" className="admin-input" />
-                        <ImageUploadField label="Garment image" value={form.iconUrl} onChange={(iconUrl) => setForm((current) => ({ ...current, iconUrl }))} onUploading={setImageUploading} onError={setImageError} />
+                        <ImageUploadField key={imageFile?.name || form.iconUrl || 'empty-image'} label="Garment image" value={form.iconUrl} onChange={setImageFile} onError={setImageError} />
                         {imageError && <p className="text-sm text-red-700">{imageError}</p>}
                         <textarea name="requiredMeasurementsJson" value={form.requiredMeasurementsJson} onChange={handleChange} required rows="3" placeholder='Required measurements JSON, e.g. [{"name":"chest"}]' className="admin-input font-mono text-xs" />
                         <input name="basePrice" value={form.basePrice} onChange={handleChange} required type="number" min="0" step="0.01" placeholder="Base price" className="admin-input" />
