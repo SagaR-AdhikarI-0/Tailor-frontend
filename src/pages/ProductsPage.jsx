@@ -1,17 +1,21 @@
 import { Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../../components/layout/Navbar'
 import BottomNavbar from '../../components/layout/BottomNavbar'
 import ProductSkeleton from '../components/ProductSkeleton'
 import { useGetProductsQuery } from '../features/products/productApi'
 import { useGetDesignsQuery } from '../features/designs/designApi'
 import { useGetFabricsQuery } from '../features/fabrics/fabricApi'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import SearchIcon from '@mui/icons-material/Search'
 
 function ProductsPage() {
-    const { data: response = [], isLoading, isError } = useGetProductsQuery({ page: 1, limit: 100 })
+    const { data: response = [], isLoading, isError } = useGetProductsQuery()
     const { data: designResponse = [], isLoading: isLoadingDesigns, isError: isDesignError } = useGetDesignsQuery()
     const { data: fabricResponse = [], isLoading: isLoadingFabrics, isError: isFabricError } = useGetFabricsQuery()
     const [search, setSearch] = useState('')
+    const [searchInput, setSearchInput] = useState('')
+    const [isSearching, setIsSearching] = useState(false)
     const [catalogType, setCatalogType] = useState('garments')
     const [category, setCategory] = useState('all')
     const [minPrice, setMinPrice] = useState('')
@@ -19,6 +23,17 @@ function ProductsPage() {
     const [sort, setSort] = useState('featured')
     const [page, setPage] = useState(1)
     const [selectedItem, setSelectedItem] = useState(null)
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
+    useEffect(() => {
+        if (searchInput === search) return undefined
+
+        const searchDelay = setTimeout(() => {
+            setSearch(searchInput)
+            setIsSearching(false)
+        }, 650)
+
+        return () => clearTimeout(searchDelay)
+    }, [search, searchInput])
     const products = useMemo(() => Array.isArray(response) ? response : response.items || response.garments || [], [response])
     const designs = useMemo(() => Array.isArray(designResponse) ? designResponse : designResponse.items || designResponse.designs || [], [designResponse])
     const fabrics = useMemo(() => Array.isArray(fabricResponse) ? fabricResponse : fabricResponse.items || fabricResponse.fabrics || [], [fabricResponse])
@@ -60,12 +75,15 @@ function ProductsPage() {
     const hasFilters = search || category !== 'all' || minPrice || maxPrice || sort !== 'featured'
     const hasInvalidPriceRange = minPrice !== '' && maxPrice !== '' && (Number.isNaN(Number(minPrice)) || Number.isNaN(Number(maxPrice)) || Number(minPrice) > Number(maxPrice))
     const isCatalogLoading = catalogType === 'garments' ? isLoading : catalogType === 'designs' ? isLoadingDesigns : isLoadingFabrics
+    const isResultsLoading = isCatalogLoading || isSearching
     const isCatalogError = catalogType === 'garments' ? isError : catalogType === 'designs' ? isDesignError : isFabricError
     const catalogTitle = catalogType === 'garments' ? 'Garments made for your proportions.' : catalogType === 'designs' ? 'Design details with a point of view.' : 'Fabrics chosen to become yours.'
     const catalogDescription = catalogType === 'garments' ? 'Start with a silhouette, then choose its fabric, design details, and measurements.' : catalogType === 'designs' ? 'Browse the details that shape a garment from familiar to unmistakably yours.' : 'Explore the cloth, texture, and color options available for your next piece.'
     const catalogLabel = catalogType === 'garments' ? 'Garments' : catalogType === 'designs' ? 'Designs' : 'Fabrics'
     const clearFilters = () => {
         setSearch('')
+        setSearchInput('')
+        setIsSearching(false)
         setCategory('all')
         setMinPrice('')
         setMaxPrice('')
@@ -85,28 +103,38 @@ function ProductsPage() {
                 <div className="mt-8 flex gap-2 overflow-x-auto border-b border-stone-300 pb-3">
                     {[['garments', 'Garments'], ['designs', 'Designs'], ['fabrics', 'Fabrics']].map(([value, label]) => <button key={value} type="button" onClick={() => { setCatalogType(value); setCategory('all'); setPage(1); setSelectedItem(null) }} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${catalogType === value ? 'bg-stone-900 text-white' : 'border border-stone-200 bg-white text-stone-600 hover:border-stone-900 hover:text-stone-900'}`}>{label}</button>)}
                 </div>
-                <section className="mt-8 rounded-3xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-                    <div className="grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
-                        <label className="relative block">
+                <section className="mt-8">
+                    <div className="relative flex items-center gap-3">
+                        <label className="relative min-w-0 flex-1">
                             <span className="sr-only">Search products</span>
-                            <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder={`Search ${catalogLabel.toLowerCase()}...`} className="admin-input pl-10" />
-                            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" aria-hidden="true">⌕</span>
+                            <input value={searchInput} onChange={(event) => { setSearchInput(event.target.value); setIsSearching(true); setPage(1) }} placeholder={`Search ${catalogLabel.toLowerCase()}...`} className="h-12 w-full rounded-2xl border border-stone-200 bg-white pl-11 pr-4 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-stone-500" />
+                            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" fontSize="small" aria-hidden="true" />
                         </label>
-                        <select value={category} onChange={(event) => { setCategory(event.target.value); setPage(1) }} className="admin-input" aria-label="Filter by category">
-                            <option value="all">All categories</option>
-                            {categories.map((option) => <option key={option} value={option}>{option}</option>)}
-                        </select>
-                        <div className="flex gap-2">
-                            <input type="number" min="0" value={minPrice} onChange={(event) => { setMinPrice(event.target.value); setPage(1) }} placeholder="Min price" className="admin-input min-w-0" aria-label="Minimum price" />
-                            <input type="number" min="0" value={maxPrice} onChange={(event) => { setMaxPrice(event.target.value); setPage(1) }} placeholder="Max price" className="admin-input min-w-0" aria-label="Maximum price" />
-                        </div>
-                        <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1) }} className="admin-input" aria-label="Sort products">
-                            <option value="featured">Featured</option>
-                            <option value="price-low">Price: low to high</option>
-                            <option value="price-high">Price: high to low</option>
-                            <option value="name">Name: A to Z</option>
-                        </select>
-                        {hasFilters ? <button type="button" onClick={clearFilters} className="rounded-2xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 transition hover:border-stone-900 hover:text-stone-900">Clear</button> : <span />}
+                        <button type="button" onClick={() => setIsFilterOpen((open) => !open)} aria-label="Open filters" aria-expanded={isFilterOpen} className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-white shadow-sm transition ${isFilterOpen || hasFilters ? 'border-stone-900 text-stone-900' : 'border-stone-200 text-stone-500 hover:border-stone-900 hover:text-stone-900'}`}>
+                            <FilterListIcon fontSize="small" />
+                        </button>
+                        {isFilterOpen && <div className="absolute right-0 top-14 z-20 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-stone-200 bg-white p-4 shadow-xl">
+                            <div className="flex items-center justify-between gap-4">
+                                <p className="text-sm font-semibold text-stone-900">Filter collection</p>
+                                {hasFilters && <button type="button" onClick={clearFilters} className="text-xs font-semibold text-stone-500 underline underline-offset-4 hover:text-stone-900">Clear all</button>}
+                            </div>
+                            <div className="mt-4 grid gap-3">
+                                <select value={category} onChange={(event) => { setCategory(event.target.value); setPage(1) }} className="admin-input" aria-label="Filter by category">
+                                    <option value="all">All categories</option>
+                                    {categories.map((option) => <option key={option} value={option}>{option}</option>)}
+                                </select>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input type="number" min="0" value={minPrice} onChange={(event) => { setMinPrice(event.target.value); setPage(1) }} placeholder="Min price" className="admin-input min-w-0" aria-label="Minimum price" />
+                                    <input type="number" min="0" value={maxPrice} onChange={(event) => { setMaxPrice(event.target.value); setPage(1) }} placeholder="Max price" className="admin-input min-w-0" aria-label="Maximum price" />
+                                </div>
+                                <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1) }} className="admin-input" aria-label="Sort products">
+                                    <option value="featured">Featured</option>
+                                    <option value="price-low">Price: low to high</option>
+                                    <option value="price-high">Price: high to low</option>
+                                    <option value="name">Name: A to Z</option>
+                                </select>
+                            </div>
+                        </div>}
                     </div>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 pt-4 text-sm text-stone-500">
                         <span>{filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}</span>
@@ -114,11 +142,11 @@ function ProductsPage() {
                     </div>
                     {hasInvalidPriceRange && <p className="mt-3 text-sm font-medium text-red-700">Enter a minimum price that is lower than the maximum price.</p>}
                 </section>
-                {isCatalogLoading && <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4" aria-label={`Loading ${catalogLabel.toLowerCase()}`}>
+                {isResultsLoading && <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4" aria-label={`Loading ${catalogLabel.toLowerCase()}`}>
                     {Array.from({ length: pageSize }, (_, index) => <ProductSkeleton key={index} compact />)}
                 </div>}
                 {isCatalogError && <p className="mt-10 text-red-700">{catalogLabel} could not be loaded.</p>}
-                {!isCatalogLoading && !isCatalogError && visibleProducts.length > 0 && <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+                {!isResultsLoading && !isCatalogError && visibleProducts.length > 0 && <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
                     {visibleProducts.map((product) => {
                         const imageUrl = product.imageUrl
                         const card = <div className="block text-left">
@@ -143,8 +171,8 @@ function ProductsPage() {
                         </article>
                     })}
                 </div>}
-                {!isCatalogLoading && !isCatalogError && visibleProducts.length === 0 && <div className="mt-10 rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center"><p className="text-lg font-semibold text-stone-900">No {catalogLabel.toLowerCase()} match your search.</p><p className="mt-2 text-sm text-stone-500">Try a different category or price range.</p><button type="button" onClick={clearFilters} className="mt-5 text-sm font-semibold text-stone-800 underline underline-offset-4">Clear filters</button></div>}
-                {!isCatalogLoading && !isCatalogError && pageCount > 1 && <nav className="mt-10 flex items-center justify-center gap-2" aria-label={`${catalogLabel} pages`}>
+                {!isResultsLoading && !isCatalogError && visibleProducts.length === 0 && <div className="mt-10 rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center"><p className="text-lg font-semibold text-stone-900">No {catalogLabel.toLowerCase()} match your search.</p><p className="mt-2 text-sm text-stone-500">Try a different category or price range.</p><button type="button" onClick={clearFilters} className="mt-5 text-sm font-semibold text-stone-800 underline underline-offset-4">Clear filters</button></div>}
+                {!isResultsLoading && !isCatalogError && pageCount > 1 && <nav className="mt-10 flex items-center justify-center gap-2" aria-label={`${catalogLabel} pages`}>
                     <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={safePage === 1} className="rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-600 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
                     {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => <button key={pageNumber} type="button" onClick={() => setPage(pageNumber)} className={`h-9 w-9 rounded-xl text-sm font-medium ${safePage === pageNumber ? 'bg-stone-900 text-white' : 'border border-stone-200 text-stone-600 hover:bg-stone-50'}`}>{pageNumber}</button>)}
                     <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={safePage === pageCount} className="rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-600 disabled:cursor-not-allowed disabled:opacity-40">Next</button>

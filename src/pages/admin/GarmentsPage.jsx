@@ -20,6 +20,17 @@ const emptyForm = {
 
 const getErrorMessage = (error) => error?.data?.message || error?.error || error?.message || 'Something went wrong.'
 
+const parseMeasurements = (value) => {
+    if (typeof value !== 'string' || !value.trim()) return []
+
+    try {
+        const parsed = JSON.parse(value)
+        return Array.isArray(parsed) ? parsed : []
+    } catch {
+        return []
+    }
+}
+
 export default function GarmentsPage() {
     const { data: garments = [], isLoading, isError } = useGetGarmentsQuery()
     const [createGarment, { isLoading: creating }] = useCreateGarmentMutation()
@@ -31,6 +42,8 @@ export default function GarmentsPage() {
     const [imageUploading, setImageUploading] = useState(false)
     const [imageFile, setImageFile] = useState(null)
     const [imageError, setImageError] = useState('')
+    const [imageFieldKey, setImageFieldKey] = useState(0)
+    const [measurementRows, setMeasurementRows] = useState([])
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
     const [sort, setSort] = useState('name')
@@ -49,6 +62,8 @@ export default function GarmentsPage() {
     const resetForm = () => {
         setForm(emptyForm)
         setEditingId(null)
+        setMeasurementRows([])
+        setImageFieldKey((current) => current + 1)
     }
 
     const handleSubmit = async (event) => {
@@ -56,17 +71,12 @@ export default function GarmentsPage() {
         setMessage('')
         const name = form.name.trim()
         const basePrice = Number(form.basePrice)
-        let measurements
+        const measurements = measurementRows
+            .map((measurement) => ({ name: measurement.name.trim() }))
+            .filter((measurement) => measurement.name)
 
-        try {
-            measurements = JSON.parse(form.requiredMeasurementsJson)
-        } catch {
-            setMessage('Required measurements must be valid JSON.')
-            return
-        }
-
-        if (!name || !form.category.trim() || !Array.isArray(measurements) || Number.isNaN(basePrice) || basePrice < 0) {
-            setMessage('Name, category, a valid price, and a JSON array of measurements are required.')
+        if (!name || !form.category.trim() || Number.isNaN(basePrice) || basePrice < 0) {
+            setMessage('Name, category, and a valid price are required.')
             return
         }
 
@@ -107,6 +117,8 @@ export default function GarmentsPage() {
             requiredMeasurementsJson: garment.requiredMeasurementsJson || '[]',
             basePrice: garment.basePrice ?? '',
         })
+        const savedMeasurements = parseMeasurements(garment.requiredMeasurementsJson)
+        setMeasurementRows(savedMeasurements.map((measurement) => ({ name: typeof measurement === 'string' ? measurement : measurement.name || '' })))
         setMessage('')
     }
 
@@ -132,9 +144,10 @@ export default function GarmentsPage() {
                     {isLoading ? <p className="p-5 text-sm text-stone-500">Loading garments...</p> : isError ? <p className="p-5 text-sm text-red-700">Unable to load garments.</p> : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-sm">
-                                <thead className="bg-stone-50 text-stone-500"><tr><th className="px-5 py-3 font-medium">Name</th><th className="px-5 py-3 font-medium">Category</th><th className="px-5 py-3 font-medium">Base price</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Actions</th></tr></thead>
+                                <thead className="bg-stone-50 text-stone-500"><tr><th className="px-5 py-3 font-medium">Image</th><th className="px-5 py-3 font-medium">Name</th><th className="px-5 py-3 font-medium">Category</th><th className="px-5 py-3 font-medium">Base price</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Actions</th></tr></thead>
                                 <tbody>
                                     {visibleGarments.map((garment) => <tr key={garment.id} className="border-t border-stone-100">
+                                        <td className="px-5 py-3"><div className="h-14 w-12 overflow-hidden rounded-xl bg-stone-100">{(garment.iconUrl || garment.imageUrl || garment.image) ? <img src={garment.iconUrl || garment.imageUrl || garment.image} alt={garment.name} className="h-full w-full object-contain" /> : <span className="flex h-full items-center justify-center text-[10px] text-stone-400">No image</span>}</div></td>
                                         <td className="px-5 py-4 font-medium">{garment.name}</td>
                                         <td className="px-5 py-4 text-stone-600">{garment.category || 'Uncategorized'}</td>
                                         <td className="px-5 py-4">{garment.basePrice != null ? `$${garment.basePrice}` : 'Custom'}</td>
@@ -153,9 +166,21 @@ export default function GarmentsPage() {
                         <input name="name" value={form.name} onChange={handleChange} required placeholder="Name" className="admin-input" />
                         <input name="category" value={form.category} onChange={handleChange} required placeholder="Category" className="admin-input" />
                         <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" rows="3" className="admin-input" />
-                        <ImageUploadField key={imageFile?.name || form.iconUrl || 'empty-image'} label="Garment image" value={form.iconUrl} onChange={setImageFile} onError={setImageError} />
+                        <ImageUploadField key={`${editingId || 'new'}-${imageFieldKey}`} label="Garment image" value={form.iconUrl} onChange={setImageFile} onError={setImageError} />
                         {imageError && <p className="text-sm text-red-700">{imageError}</p>}
-                        <textarea name="requiredMeasurementsJson" value={form.requiredMeasurementsJson} onChange={handleChange} required rows="3" placeholder='Required measurements JSON, e.g. [{"name":"chest"}]' className="admin-input font-mono text-xs" />
+                        <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <div><p className="text-sm font-medium text-stone-800">Required measurements</p><p className="mt-1 text-xs text-stone-500">Add the measurements customers should provide.</p></div>
+                                <button type="button" onClick={() => setMeasurementRows((current) => [...current, { name: '' }])} className="shrink-0 rounded-full bg-stone-900 px-3 py-2 text-xs font-semibold text-white hover:bg-stone-700">Add measurement</button>
+                            </div>
+                            <div className="mt-3 space-y-2">
+                                {measurementRows.map((measurement, index) => <div key={index} className="flex gap-2">
+                                    <input value={measurement.name} onChange={(event) => setMeasurementRows((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item))} placeholder="e.g. Chest" className="admin-input min-w-0 flex-1 bg-white" />
+                                    <button type="button" onClick={() => setMeasurementRows((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remove measurement ${index + 1}`} className="rounded-xl border border-stone-200 px-3 text-lg text-stone-500 hover:border-red-300 hover:text-red-700">&times;</button>
+                                </div>)}
+                                {measurementRows.length === 0 && <p className="text-sm text-stone-500">No measurements added yet.</p>}
+                            </div>
+                        </div>
                         <input name="basePrice" value={form.basePrice} onChange={handleChange} required type="number" min="0" step="0.01" placeholder="Base price" className="admin-input" />
                         {message && <p className="rounded-2xl bg-stone-50 p-3 text-sm text-stone-700">{message}</p>}
                         <button type="submit" disabled={creating || updating || imageUploading} className="w-full rounded-full bg-stone-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">{creating || updating || imageUploading ? 'Saving...' : editingId ? 'Update garment' : 'Create garment'}</button>

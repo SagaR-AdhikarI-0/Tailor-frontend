@@ -24,7 +24,7 @@ export default function ProductDetailPage() {
     const [viewingDesign, setViewingDesign] = useState(null)
     const [selectedFabricId, setSelectedFabricId] = useState('')
     const [viewingFabric, setViewingFabric] = useState(null)
-    const [fabricZoom, setFabricZoom] = useState(null)
+    const [imageZoom, setImageZoom] = useState(null)
     const [measurementSnapshot, setMeasurementSnapshot] = useState('')
     const [customizationDetails, setCustomizationDetails] = useState('')
 
@@ -77,25 +77,25 @@ export default function ProductDetailPage() {
         }
     }
 
-    const updateFabricZoom = (event, id, image) => {
+    const updateImageZoom = (event, id, image) => {
         const bounds = event.currentTarget.getBoundingClientRect()
         const x = Math.max(0, Math.min(100, ((event.clientX - bounds.left) / bounds.width) * 100))
         const y = Math.max(0, Math.min(100, ((event.clientY - bounds.top) / bounds.height) * 100))
         const left = Math.min(event.clientX + 20, window.innerWidth - 240)
         const top = Math.min(Math.max(12, event.clientY - 112), window.innerHeight - 236)
-        setFabricZoom({ id, image, x, y, left, top })
+        setImageZoom({ id, image, x, y, left, top })
     }
 
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
             <Navbar />
-            <main className="bg-[#e8dfd5] px-4 py-6 sm:px-8 sm:py-10">
+            <main className=" px-4 py-6 sm:px-8 sm:py-10">
                 <div className="mx-auto max-w-6xl">
                     <button type="button" onClick={() => navigate(-1)} className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-stone-600 transition hover:text-stone-950"><span aria-hidden="true">←</span> Back to collection</button>
                     <section className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr] lg:items-start">
                         <div className="mx-auto w-full max-w-[500px] rounded-[28px] bg-[#d9cabe] p-3 shadow-sm sm:p-4 lg:sticky lg:top-6">
                             <div className="relative aspect-[5/6] overflow-hidden rounded-[22px] bg-stone-200">
-                                {imageUrl ? <img src={imageUrl} alt={garment.name} className="h-full w-full object-cover transition duration-700 hover:scale-[1.02]" /> : <div className="h-full w-full bg-stone-200" />}
+                                {imageUrl ? <img src={imageUrl} alt={garment.name} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-stone-200" />}
                                 <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-600 shadow-sm backdrop-blur-sm">{garment.category || 'Tailoring'}</span>
                             </div>
                             <div className="flex items-center justify-between px-2 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-stone-600 sm:px-3">
@@ -132,8 +132,10 @@ export default function ProductDetailPage() {
                             {activeDesigns.length > 0 ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3">{activeDesigns.map((design) => {
                                 const designId = design.id || design._id
                                 const designImage = design.imageUrl || design.image || design.iconUrl
-                                return <button key={designId} type="button" onClick={() => { setSelectedDesignId(designId); setViewingDesign(design); setIsModalOpen(true) }} className="group overflow-hidden rounded-2xl border border-stone-200 text-left transition hover:-translate-y-1 hover:border-stone-900 hover:shadow-md">
-                                    <div className="aspect-[4/3] bg-stone-100">{designImage ? <img src={designImage} alt={design.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}</div>
+                                return <button key={designId} type="button" onClick={() => { setSelectedDesignId(designId); setViewingDesign(design); setIsModalOpen(true) }} onMouseMove={(event) => designImage && updateImageZoom(event, `design-${designId}`, designImage)} onMouseEnter={(event) => designImage && updateImageZoom(event, `design-${designId}`, designImage)} onMouseLeave={() => setImageZoom(null)} className="group/design overflow-hidden rounded-2xl bg-white/70 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900">
+                                    <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-stone-100">{designImage ? <img src={designImage} alt={design.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}
+                                        {imageZoom?.id === `design-${designId}` && <span className="pointer-events-none absolute h-16 w-20 -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(28,25,23,0.55)]" style={{ left: `${imageZoom.x}%`, top: `${imageZoom.y}%` }} />}
+                                    </div>
                                     <div className="p-3"><p className="truncate text-sm font-semibold text-stone-900">{design.name}</p><p className="mt-1 text-xs text-stone-500">{design.tailoringPrice != null ? `$${design.tailoringPrice}` : 'Custom detail'}</p></div>
                                 </button>
                             })}</div> : <p className="mt-4 rounded-2xl bg-stone-100 p-4 text-sm text-stone-500">Design options will be confirmed after ordering.</p>}
@@ -144,9 +146,9 @@ export default function ProductDetailPage() {
                             {activeFabrics.length > 0 ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{activeFabrics.map((fabric) => {
                                 const fabricId = fabric.id || fabric._id
                                 const fabricImage = fabric.imageUrl || fabric.image || fabric.iconUrl
-                                return <button key={fabricId} type="button" onClick={() => { setSelectedFabricId(fabricId); setViewingFabric(fabric); setIsModalOpen(true) }} onMouseMove={(event) => fabricImage && updateFabricZoom(event, fabricId, fabricImage)} onMouseEnter={(event) => fabricImage && updateFabricZoom(event, fabricId, fabricImage)} onMouseLeave={() => setFabricZoom(null)} className="group/fabric relative overflow-visible rounded-2xl border border-stone-200 text-left transition hover:-translate-y-1 hover:border-stone-900 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900">
-                                    <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-stone-100">{fabricImage ? <img src={fabricImage} alt={fabric.name} className="h-full w-full object-cover transition duration-500 group-hover/fabric:scale-105" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}
-                                        {fabricZoom?.id === fabricId && <span className="pointer-events-none absolute h-16 w-20 -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(28,25,23,0.55)]" style={{ left: `${fabricZoom.x}%`, top: `${fabricZoom.y}%` }} />}
+                                return <button key={fabricId} type="button" onClick={() => { setSelectedFabricId(fabricId); setViewingFabric(fabric); setIsModalOpen(true) }} onMouseMove={(event) => fabricImage && updateImageZoom(event, fabricId, fabricImage)} onMouseEnter={(event) => fabricImage && updateImageZoom(event, fabricId, fabricImage)} onMouseLeave={() => setImageZoom(null)} className="group/fabric relative overflow-visible rounded-2xl border border-stone-200 text-left transition hover:-translate-y-1 hover:border-stone-900 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900">
+                                    <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-stone-100">{fabricImage ? <img src={fabricImage} alt={fabric.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}
+                                        {imageZoom?.id === fabricId && <span className="pointer-events-none absolute h-16 w-20 -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(28,25,23,0.55)]" style={{ left: `${imageZoom.x}%`, top: `${imageZoom.y}%` }} />}
                                     </div>
                                     <div className="p-3"><p className="truncate text-sm font-semibold text-stone-900">{fabric.name}</p><p className="mt-1 text-xs text-stone-500">{fabric.price != null ? `$${fabric.price}` : fabric.category || fabric.color || 'Atelier cloth'}</p></div>
                                 </button>
@@ -157,7 +159,7 @@ export default function ProductDetailPage() {
                     </section>
                 </div>
             </main>
-            {fabricZoom && <div className="pointer-events-none fixed z-[60] hidden h-56 w-56 rounded-2xl border border-stone-300 bg-white p-2 shadow-2xl lg:block" style={{ left: fabricZoom.left, top: fabricZoom.top }} aria-hidden="true"><div className="h-full w-full rounded-xl bg-stone-100" style={{ backgroundImage: `url(${fabricZoom.image})`, backgroundPosition: `${fabricZoom.x}% ${fabricZoom.y}%`, backgroundRepeat: 'no-repeat', backgroundSize: '250%' }} /></div>}
+            {imageZoom && <div className="pointer-events-none fixed z-[60] hidden h-56 w-56 rounded-2xl border border-stone-300 bg-white p-2 shadow-2xl lg:block" style={{ left: imageZoom.left, top: imageZoom.top }} aria-hidden="true"><div className="h-full w-full rounded-xl bg-stone-100" style={{ backgroundImage: `url(${imageZoom.image})`, backgroundPosition: `${imageZoom.x}% ${imageZoom.y}%`, backgroundRepeat: 'no-repeat', backgroundSize: '250%' }} /></div>}
             <BottomNavbar />
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsModalOpen(false) }}>

@@ -3,19 +3,21 @@ import { baseApi } from '../../app/baseApi'
 export const productApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getProducts: builder.query({
-            query: ({ page = 1, limit = 12 } = {}) => ({
-                url: '/garment',
-                method: 'GET',
-                params: { page, limit },
-                requireAuth: false,
-            }),
+            query: (options = {}) => {
+                const { page, limit } = options
+                return {
+                    url: '/garment',
+                    method: 'GET',
+                    ...(page != null || limit != null ? { params: { page, limit } } : {}),
+                    requireAuth: false,
+                }
+            },
             providesTags: ['Garment'],
         }),
         getGarments: builder.query({
-            query: ({ page = 1, limit = 12 } = {}) => ({
+            query: () => ({
                 url: '/garment',
                 method: 'GET',
-                params: { page, limit },
                 requireAuth: false,
             }),
             providesTags: ['Garment'],
