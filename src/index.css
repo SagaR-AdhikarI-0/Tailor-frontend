@@ -46,3 +46,12 @@ a {
 .admin-input:focus {
     border-color: #1c1917;
 }
+
+.scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}

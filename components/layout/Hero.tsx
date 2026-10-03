@@ -6,7 +6,7 @@ import rightLastModel from '../../src/assets/right_last.png'
 
 function FashionHero() {
     return (
-        <section className="relative min-h-[760px] overflow-hidden bg-[#f4efe9] px-4 pt-12 sm:min-h-[820px] sm:px-6 sm:pt-14">
+        <section className="relative min-h-[760px] overflow-hidden bg-[#f4efe9] pb-10 px-4 pt-12 sm:min-h-[820px] sm:px-6 sm:pt-14">
 
             {/* Content */}
             <div className="relative z-10 mx-auto max-w-5xl text-center">

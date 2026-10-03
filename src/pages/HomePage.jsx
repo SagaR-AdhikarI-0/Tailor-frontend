@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import FashionHero from '../../components/layout/Hero'
 import Navbar from '../../components/layout/Navbar'
 import BottomNavbar from '../../components/layout/BottomNavbar'
+import ProductSkeleton from '../components/ProductSkeleton'
 import { useGetProductsQuery } from '../features/products/productApi'
-import tailorImage from '../assets/tailor.png'
 import fabricImage from '../assets/fabric.png'
 
 function HomePage() {
@@ -11,13 +11,12 @@ function HomePage() {
 
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
-            <div className="overflow-hidden rounded-b-[28px] bg-[#f4efe9]">
+            <div className="overflow-hidden rounded-b-[28px] ">
                 <Navbar />
                 <FashionHero />
             </div>
 
-            <section className="relative overflow-hidden border-y border-stone-300 bg-[#d8e0d7]">
-                <div className="absolute -right-16 top-10 h-48 w-48 rounded-full border border-stone-400/50 sm:right-16 sm:h-64 sm:w-64" aria-hidden="true" />
+            <section className="relative overflow-hidden  mt-20">
                 <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
                     <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
                         <div>
@@ -62,36 +61,11 @@ function HomePage() {
                     </div>
 
                     <div className="mt-14 flex flex-wrap items-center gap-3 border-t border-dashed border-stone-400/80 pt-5 text-xs font-medium uppercase tracking-[0.2em] text-stone-600">
-                        <span>Current palette</span>
-                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#c9b8a6]" aria-label="Warm taupe swatch" />
-                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#899b93]" aria-label="Sage swatch" />
-                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#b88d83]" aria-label="Rosewood swatch" />
-                        <span className="h-5 w-5 rounded-full border border-stone-500/40 bg-[#33413f]" aria-label="Deep green swatch" />
-                        <span className="ml-auto hidden italic normal-case tracking-normal text-stone-500 sm:block">Nothing ordinary.</span>
                     </div>
                 </div>
             </section>
 
-            <section className="border-b border-stone-200 bg-[#f0ebe4]">
-                <div className="mx-auto grid max-w-6xl divide-y divide-stone-300 px-4 py-8 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4 lg:px-6">
-                    <div className="px-5 py-3 text-center sm:px-8">
-                        <p className="text-3xl font-semibold tracking-tight text-stone-900">2,500+</p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Customers served</p>
-                    </div>
-                    <div className="px-5 py-3 text-center sm:px-8">
-                        <p className="text-3xl font-semibold tracking-tight text-stone-900">8,000+</p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Garments tailored</p>
-                    </div>
-                    <div className="px-5 py-3 text-center sm:px-8">
-                        <p className="text-3xl font-semibold tracking-tight text-stone-900">18</p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Years of craft</p>
-                    </div>
-                    <div className="px-5 py-3 text-center sm:px-8">
-                        <p className="text-3xl font-semibold tracking-tight text-stone-900">40+</p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Fabric options</p>
-                    </div>
-                </div>
-            </section>
+
 
             <section className="mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6">
                 <div className="flex items-end justify-between gap-6 border-b border-stone-300 pb-5">
@@ -103,26 +77,33 @@ function HomePage() {
                 </div>
 
                 {isLoading ? (
-                    <p className="py-12 text-stone-500">Loading products...</p>
+                    <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-6" aria-label="Loading products">
+                        {Array.from({ length: 4 }, (_, index) => <ProductSkeleton key={index} compact />)}
+                    </div>
                 ) : (
-                    <div className="mt-8 grid gap-x-6 gap-y-12 md:grid-cols-12">
-                        {products.slice(0, 4).map((product, index) => {
+                    <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-6">
+                        {products.slice(0, 4).map((product) => {
                             const productPath = product.id ? `/products/${product.id}` : '/products'
                             const imageUrl = product.iconUrl || product.image || product.imageUrl
-                            const isLead = index === 0
                             return (
-                                <Link key={product.id || product._id} to={productPath} className={isLead ? 'group md:col-span-7' : 'group md:col-span-5'}>
-                                    <div className={`${isLead ? 'aspect-[1.2/1] sm:aspect-[1.35/1]' : 'aspect-[1.15/1]'} overflow-hidden bg-stone-200`}>
+                                <Link key={product.id || product._id} to={productPath} className="group min-w-0 rounded-[22px] border border-stone-200 bg-white p-2.5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/60">
+                                    <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-stone-200">
                                         {imageUrl ? <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" /> : <div className="h-full w-full bg-stone-200" />}
+                                        <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-600 shadow-sm backdrop-blur-sm">{product.category || 'Tailoring'}</span>
                                     </div>
-                                    <div className="mt-4 flex items-start justify-between gap-4 border-b border-stone-300 pb-4">
-                                        <div>
-                                            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-stone-500">{product.category || 'Tailoring'}</p>
-                                            <h4 className={`${isLead ? 'text-2xl' : 'text-xl'} mt-2 font-semibold text-stone-900`}>{product.name || 'Signature Piece'}</h4>
+                                    <div className="px-1.5 pb-1 pt-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-stone-400">Made to measure</p>
+                                                <h4 className="mt-1 truncate text-base font-semibold text-stone-900 sm:text-lg">{product.name || 'Signature Piece'}</h4>
+                                            </div>
+                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-stone-200 text-sm text-stone-500 transition group-hover:border-stone-900 group-hover:bg-stone-900 group-hover:text-white" aria-hidden="true">↗</span>
                                         </div>
-                                        <p className="shrink-0 pt-5 text-sm text-stone-600">{product.basePrice != null ? `$${product.basePrice}` : 'Custom'}</p>
+                                        <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-2.5">
+                                            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500">View piece</span>
+                                            <p className="text-xs font-medium text-stone-700 sm:text-sm">{product.basePrice != null ? `$${product.basePrice}` : 'Custom'}</p>
+                                        </div>
                                     </div>
-                                    <span className="mt-3 inline-block text-xs font-semibold uppercase tracking-[0.18em] text-stone-500 transition group-hover:text-stone-900">Explore piece <span aria-hidden="true">↗</span></span>
                                 </Link>
                             )
                         })}
@@ -131,13 +112,13 @@ function HomePage() {
                 <Link to="/products" className="mt-10 block text-center text-xs font-semibold uppercase tracking-[0.2em] text-stone-600 underline decoration-stone-300 underline-offset-8 sm:hidden">View all pieces</Link>
             </section>
 
-            <section className="overflow-hidden bg-[#e8e0d7]">
+            {/* <section className="overflow-hidden bg-[#e9e3db]"> 
                 <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24">
                     <div>
-                        <h2 className="max-w-lg text-4xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-5xl">
+                        <h2 className=" text-4xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-5xl">
                             Tailored clothes only for you
                         </h2>
-                        <p className="mt-6 max-w-lg text-base leading-7 text-stone-600">
+                        <p className="mt-6  text-base leading-7 text-stone-600">
                             Every piece begins with your measurements, preferences, and the way you actually live. We cut, stitch, and finish each garment so the fit feels personal — not pulled from a rack, but made around you from the first fitting to the final hem.
                         </p>
                     </div>
@@ -149,7 +130,7 @@ function HomePage() {
                     <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600 sm:text-left">Measured for your life.</p>
                     <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600 sm:text-right">Cut around you.</p>
                 </div>
-            </section>
+            </section> */}
 
             <section className="border-t border-stone-200 bg-[#e9e3db]">
                 <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24">
