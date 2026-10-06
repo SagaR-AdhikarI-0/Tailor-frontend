@@ -67,7 +67,12 @@ function HomePage() {
 
 
 
-            <section className="mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6">
+            <section className="relative overflow-hidden">
+                <span aria-hidden="true" className="floating-square absolute left-3 top-[28%] hidden h-14 w-14 [--square-rotation:-12deg] border-2 border-[#641d2b]/20 sm:block lg:left-8 lg:h-16 lg:w-16" />
+                <span aria-hidden="true" className="floating-square floating-square-delayed absolute left-8 top-[70%] hidden h-7 w-7 bg-[#c7a36a]/35 sm:block lg:left-16 lg:h-8 lg:w-8" />
+                <span aria-hidden="true" className="floating-square absolute right-3 top-[48%] hidden h-10 w-10 [--square-rotation:10deg] bg-[#641d2b]/10 sm:block lg:right-8 lg:h-14 lg:w-14" />
+                <span aria-hidden="true" className="floating-square floating-square-delayed absolute right-8 top-[18%] hidden h-6 w-6 [--square-rotation:45deg] border border-[#c7a36a]/50 sm:block lg:right-16 lg:h-8 lg:w-8" />
+                <div className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6">
                 <div className="flex items-end justify-between gap-6 border-b border-stone-300 pb-5">
                     <div>
                         <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">A considered edit</p>
@@ -101,7 +106,7 @@ function HomePage() {
                                         </div>
                                         <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-2.5">
                                             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500">View piece</span>
-                                            <p className="text-xs font-medium text-stone-700 sm:text-sm">{product.basePrice != null ? `$${product.basePrice}` : 'Custom'}</p>
+                                            <p className="text-xs font-medium text-stone-700 sm:text-sm">{product.basePrice != null ? `Rs ${product.basePrice}` : 'Custom'}</p>
                                         </div>
                                     </div>
                                 </Link>
@@ -110,6 +115,7 @@ function HomePage() {
                     </div>
                 )}
                 <Link to="/products" className="mt-10 block text-center text-xs font-semibold uppercase tracking-[0.2em] text-stone-600 underline decoration-stone-300 underline-offset-8 sm:hidden">View all pieces</Link>
+                </div>
             </section>
 
             {/* <section className="overflow-hidden bg-[#e9e3db]"> 
@@ -158,9 +164,18 @@ function HomePage() {
                 </div>
             </section>
 
-            <section className="overflow-hidden  bg-white">
-                <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-20 lg:py-28">
-                    <img src={fabricImage} alt="Fabric Image" />
+            <section className="relative overflow-hidden bg-white">
+                <span aria-hidden="true" className="floating-square absolute left-3 top-[25%] hidden h-12 w-12 [--square-rotation:10deg] bg-[#641d2b]/10 sm:block lg:left-8 lg:h-14 lg:w-14" />
+                <span aria-hidden="true" className="floating-square floating-square-delayed absolute left-8 top-[70%] hidden h-6 w-6 [--square-rotation:45deg] border border-[#c7a36a]/50 sm:block lg:left-16 lg:h-8 lg:w-8" />
+                <span aria-hidden="true" className="floating-square absolute right-3 top-[55%] hidden h-14 w-14 [--square-rotation:-12deg] border-2 border-[#641d2b]/20 sm:block lg:right-8 lg:h-16 lg:w-16" />
+                <span aria-hidden="true" className="floating-square floating-square-delayed absolute right-8 top-[18%] hidden h-7 w-7 bg-[#c7a36a]/35 sm:block lg:right-16 lg:h-8 lg:w-8" />
+                <div className="relative z-10 mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-20 lg:py-28">
+                    <div className="relative">
+                        <span aria-hidden="true" className="floating-square absolute -right-3 top-12 h-14 w-14 [--square-rotation:12deg] border-2 border-[#641d2b]/25 sm:-right-6 sm:h-20 sm:w-20" />
+                        <span aria-hidden="true" className="floating-square floating-square-delayed absolute -right-1 top-1/2 h-8 w-8 bg-[#641d2b]/10 sm:-right-3 sm:h-12 sm:w-12" />
+                        <span aria-hidden="true" className="floating-square absolute bottom-10 right-8 h-5 w-5 [--square-rotation:45deg] bg-[#c7a36a]/35 sm:right-12 sm:h-7 sm:w-7" />
+                        <img src={fabricImage} alt="A selection of fabric for custom-made clothing" className="relative z-10" />
+                    </div>
 
                     <div className="max-w-md">
                         <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">The fabric library</p>

@@ -21,7 +21,15 @@ export const orderApi = baseApi.injectEndpoints({
         }),
         getMyOrders: builder.query({
             query: () => ({
-                url: '/orders',
+                url: '/order',
+                method: 'GET',
+                requireAuth: true,
+            }),
+            providesTags: ['Orders'],
+        }),
+        getOrder: builder.query({
+            query: (id) => ({
+                url: `/order/${id}`,
                 method: 'GET',
                 requireAuth: true,
             }),
@@ -46,12 +54,38 @@ export const orderApi = baseApi.injectEndpoints({
         }),
         placeOrder: builder.mutation({
             query: (payload) => ({
-                url: '/orders',
+                url: '/order',
                 method: 'POST',
                 body: payload,
                 requireAuth: true,
             }),
             invalidatesTags: ['Orders', 'Cart'],
+        }),
+        createOrder: builder.mutation({
+            query: (payload) => ({
+                url: '/order',
+                method: 'POST',
+                body: payload,
+                requireAuth: true,
+            }),
+            invalidatesTags: ['Orders'],
+        }),
+        initiatePayment: builder.mutation({
+            query: (payload) => ({
+                url: '/payment/initiate',
+                method: 'POST',
+                body: payload,
+                requireAuth: true,
+            }),
+        }),
+        verifyPayment: builder.mutation({
+            query: (payload) => ({
+                url: '/payment/verify',
+                method: 'POST',
+                body: payload,
+                requireAuth: true,
+            }),
+            invalidatesTags: ['Orders'],
         }),
     }),
 })
@@ -60,7 +94,11 @@ export const {
     useGetMyCartQuery,
     useAddToCartMutation,
     useGetMyOrdersQuery,
+    useGetOrderQuery,
     useGetAdminOrdersQuery,
     useUpdateOrderStatusMutation,
     usePlaceOrderMutation,
+    useCreateOrderMutation,
+    useInitiatePaymentMutation,
+    useVerifyPaymentMutation,
 } = orderApi

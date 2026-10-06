@@ -11,6 +11,19 @@ import BottomNavbar from '../../components/layout/BottomNavbar'
 
 const getErrorMessage = (error) => error?.data?.message || error?.error || error?.message || 'Unable to add this garment to your cart.'
 
+const parseMeasurements = (value) => {
+    if (typeof value !== 'string' || !value.trim()) return []
+
+    try {
+        const parsed = JSON.parse(value)
+        return Array.isArray(parsed) ? parsed.map((measurement, index) => ({
+            name: typeof measurement === 'string' ? measurement : measurement?.name || measurement?.label || `Measurement ${index + 1}`,
+        })).filter((measurement) => measurement.name) : []
+    } catch {
+        return []
+    }
+}
+
 export default function ProductDetailPage() {
     const { productId } = useParams()
     const navigate = useNavigate()
@@ -25,8 +38,15 @@ export default function ProductDetailPage() {
     const [selectedFabricId, setSelectedFabricId] = useState('')
     const [viewingFabric, setViewingFabric] = useState(null)
     const [imageZoom, setImageZoom] = useState(null)
-    const [measurementSnapshot, setMeasurementSnapshot] = useState('')
+    const [measurementValues, setMeasurementValues] = useState({})
     const [customizationDetails, setCustomizationDetails] = useState('')
+    const [toast, setToast] = useState('')
+
+    useEffect(() => {
+        if (!toast) return undefined
+        const toastTimer = setTimeout(() => setToast(''), 3000)
+        return () => clearTimeout(toastTimer)
+    }, [toast])
 
     useEffect(() => {
         if (!isModalOpen) return undefined
@@ -48,13 +68,24 @@ export default function ProductDetailPage() {
     const activeDesigns = (garment.designs || []).filter((design) => design.isActive !== false)
     const availableFabrics = Array.isArray(fabrics) ? fabrics : fabrics.items || fabrics.fabrics || []
     const activeFabrics = availableFabrics.filter((fabric) => fabric.isActive !== false)
+    const requiredMeasurements = parseMeasurements(garment.requiredMeasurementsJson)
     const handleAddToCart = async () => {
+        const missingMeasurement = requiredMeasurements.find((_, index) => !String(measurementValues[index] || '').trim())
+        if (missingMeasurement) {
+            setMessage(`Please enter your ${missingMeasurement.name.toLowerCase()} measurement.`)
+            setIsModalOpen(true)
+            return
+        }
+
+        const measurementSnapshot = requiredMeasurements.length
+            ? JSON.stringify(requiredMeasurements.reduce((values, measurement, index) => ({ ...values, [measurement.name]: measurementValues[index].trim() }), {}))
+            : null
         const itemData = {
             garmentId: garment.id,
             designId: selectedDesignId || null,
             fabricId: selectedFabricId || null,
             quantity: 1,
-            measurementSnapshot: measurementSnapshot.trim() || null,
+            measurementSnapshot,
             customizationDetails: customizationDetails.trim() || null,
             garment,
             design: garment.designs?.find((design) => String(design.id || design._id) === String(selectedDesignId)) || null,
@@ -71,7 +102,7 @@ export default function ProductDetailPage() {
         try {
             addLocalCartItem(user, itemData)
             setIsModalOpen(false)
-            setMessage('Added to cart. Continue to your cart to checkout.')
+            setToast(`${garment.name} was added to your cart.`)
         } catch (error) {
             setMessage(getErrorMessage(error))
         }
@@ -89,6 +120,7 @@ export default function ProductDetailPage() {
     return (
         <div className="min-h-screen bg-stone-100 text-stone-900">
             <Navbar />
+            {toast && <div role="status" className="fixed right-4 top-4 z-[70] flex items-center gap-3 rounded-2xl bg-stone-900 px-4 py-3 text-sm font-medium text-white shadow-xl sm:right-6 sm:top-6"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400 text-sm font-bold text-stone-950" aria-hidden="true">✓</span>{toast}</div>}
             <main className=" px-4 py-6 sm:px-8 sm:py-10">
                 <div className="mx-auto max-w-6xl">
                     <button type="button" onClick={() => navigate(-1)} className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-stone-600 transition hover:text-stone-950"><span aria-hidden="true">←</span> Back to collection</button>
@@ -108,7 +140,7 @@ export default function ProductDetailPage() {
                             <p className="text-xs font-medium uppercase tracking-[0.3em] text-stone-500">The considered edit</p>
                             <h1 className="mt-4 text-4xl font-semibold leading-[0.98] tracking-tight text-stone-900 sm:text-6xl">{garment.name}</h1>
                             <div className="mt-6 flex items-end justify-between gap-4 border-b border-stone-200 pb-6">
-                                <p className="text-2xl font-semibold text-stone-900">{garment.basePrice != null ? `$${garment.basePrice}` : 'Custom pricing'}</p>
+                                <p className="text-2xl font-semibold text-stone-900">{garment.basePrice != null ? `Rs ${garment.basePrice}` : 'Custom pricing'}</p>
                                 <span className="text-right text-xs uppercase tracking-[0.16em] text-stone-500">Designed<br />around you</span>
                             </div>
                             <p className="mt-7 text-base leading-7 text-stone-600">{garment.description || 'A garment tailored to your measurements and preferences.'}</p>
@@ -136,7 +168,7 @@ export default function ProductDetailPage() {
                                     <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-stone-100">{designImage ? <img src={designImage} alt={design.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}
                                         {imageZoom?.id === `design-${designId}` && <span className="pointer-events-none absolute h-16 w-20 -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(28,25,23,0.55)]" style={{ left: `${imageZoom.x}%`, top: `${imageZoom.y}%` }} />}
                                     </div>
-                                    <div className="p-3"><p className="truncate text-sm font-semibold text-stone-900">{design.name}</p><p className="mt-1 text-xs text-stone-500">{design.tailoringPrice != null ? `$${design.tailoringPrice}` : 'Custom detail'}</p></div>
+                                    <div className="p-3"><p className="truncate text-sm font-semibold text-stone-900">{design.name}</p><p className="mt-1 text-xs text-stone-500">{design.tailoringPrice != null ? `Rs ${design.tailoringPrice}` : 'Custom detail'}</p></div>
                                 </button>
                             })}</div> : <p className="mt-4 rounded-2xl bg-stone-100 p-4 text-sm text-stone-500">Design options will be confirmed after ordering.</p>}
                         </div>
@@ -150,12 +182,12 @@ export default function ProductDetailPage() {
                                     <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-stone-100">{fabricImage ? <img src={fabricImage} alt={fabric.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}
                                         {imageZoom?.id === fabricId && <span className="pointer-events-none absolute h-16 w-20 -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(28,25,23,0.55)]" style={{ left: `${imageZoom.x}%`, top: `${imageZoom.y}%` }} />}
                                     </div>
-                                    <div className="p-3"><p className="truncate text-sm font-semibold text-stone-900">{fabric.name}</p><p className="mt-1 text-xs text-stone-500">{fabric.price != null ? `$${fabric.price}` : fabric.category || fabric.color || 'Atelier cloth'}</p></div>
+                                    <div className="p-3"><p className="truncate text-sm font-semibold text-stone-900">{fabric.name}</p><p className="mt-1 text-xs text-stone-500">{fabric.price != null ? `Rs ${fabric.price}` : fabric.category || fabric.color || 'Atelier cloth'}</p></div>
                                 </button>
                             })}</div> : <p className="mt-4 rounded-2xl bg-stone-100 p-4 text-sm text-stone-500">Fabric options will be confirmed after ordering.</p>}
                         </div>
 
-                        <div className="mt-10 border-t border-stone-200 pt-7"><p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">Measurements</p><p className="mt-3 break-words text-sm leading-6 text-stone-600">{garment.requiredMeasurementsJson || 'Measurements will be collected with your order.'}</p></div>
+                        <div className="mt-10 border-t border-stone-200 pt-7"><p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">Measurements</p>{requiredMeasurements.length ? <div className="mt-3 flex flex-wrap gap-2">{requiredMeasurements.map((measurement) => <span key={measurement.name} className="rounded-full bg-white px-3 py-1.5 text-sm text-stone-600 shadow-sm">{measurement.name}</span>)}</div> : <p className="mt-3 text-sm leading-6 text-stone-600">Measurements will be collected with your order.</p>}</div>
                     </section>
                 </div>
             </main>
@@ -174,10 +206,10 @@ export default function ProductDetailPage() {
                                     const isSelected = String(selectedDesignId) === String(designId)
                                     return <button key={designId} type="button" onClick={() => { setSelectedDesignId(designId); setViewingDesign(design) }} className={`overflow-hidden rounded-2xl border-2 text-left transition hover:border-stone-900 ${isSelected ? 'border-stone-900 ring-2 ring-stone-900/15' : 'border-stone-200'}`}>
                                         <div className="h-28 bg-stone-100">{designImage ? <img src={designImage} alt={design.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}</div>
-                                        <div className="p-3"><p className="truncate text-sm font-semibold">{design.name}</p><p className="mt-1 text-sm text-stone-600">{design.tailoringPrice != null ? `$${design.tailoringPrice}` : 'Custom'}</p></div>
+                                        <div className="p-3"><p className="truncate text-sm font-semibold">{design.name}</p><p className="mt-1 text-sm text-stone-600">{design.tailoringPrice != null ? `Rs ${design.tailoringPrice}` : 'Custom'}</p></div>
                                     </button>
                                 })}</div> : <p className="mt-3 rounded-xl bg-stone-100 p-3 text-sm text-stone-500">No designs are available for this garment.</p>}
-                                {viewingDesign && <div className="mt-4 rounded-2xl bg-stone-100 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-stone-500">Selected design</p><h3 className="mt-1 font-semibold">{viewingDesign.name}</h3></div><p className="font-semibold">{viewingDesign.tailoringPrice != null ? `$${viewingDesign.tailoringPrice}` : 'Custom'}</p></div><p className="mt-3 text-sm leading-6 text-stone-600">{viewingDesign.description || 'A considered design detail prepared for this garment.'}</p></div>}
+                                {viewingDesign && <div className="mt-4 rounded-2xl bg-stone-100 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-stone-500">Selected design</p><h3 className="mt-1 font-semibold">{viewingDesign.name}</h3></div><p className="font-semibold">{viewingDesign.tailoringPrice != null ? `Rs ${viewingDesign.tailoringPrice}` : 'Custom'}</p></div><p className="mt-3 text-sm leading-6 text-stone-600">{viewingDesign.description || 'A considered design detail prepared for this garment.'}</p></div>}
                             </div>
                             <div>
                                 <div className="flex items-end justify-between gap-4"><div><p className="text-sm font-semibold">Choose a fabric</p><p className="mt-1 text-sm text-stone-500">Select an image to see its details.</p></div>{selectedFabricId && <button type="button" onClick={() => { setSelectedFabricId(''); setViewingFabric(null) }} className="text-sm font-medium text-stone-600 underline underline-offset-4">Clear</button>}</div>
@@ -187,12 +219,12 @@ export default function ProductDetailPage() {
                                     const isSelected = String(selectedFabricId) === String(fabricId)
                                     return <button key={fabricId} type="button" onClick={() => { setSelectedFabricId(fabricId); setViewingFabric(fabric) }} className={`overflow-hidden rounded-2xl border-2 text-left transition hover:border-stone-900 ${isSelected ? 'border-stone-900 ring-2 ring-stone-900/15' : 'border-stone-200'}`}>
                                         <div className="h-28 bg-stone-100">{fabricImage ? <img src={fabricImage} alt={fabric.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center px-3 text-center text-xs uppercase tracking-[0.12em] text-stone-400">No image</div>}</div>
-                                        <div className="p-3"><p className="truncate text-sm font-semibold">{fabric.name}</p><p className="mt-1 text-sm text-stone-600">{fabric.price != null ? `$${fabric.price}` : 'Custom'}</p></div>
+                                        <div className="p-3"><p className="truncate text-sm font-semibold">{fabric.name}</p><p className="mt-1 text-sm text-stone-600">{fabric.price != null ? `Rs ${fabric.price}` : 'Custom'}</p></div>
                                     </button>
                                 })}</div> : <p className="mt-3 rounded-xl bg-stone-100 p-3 text-sm text-stone-500">No fabrics are available for this garment.</p>}
-                                {viewingFabric && <div className="mt-4 rounded-2xl bg-stone-100 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-stone-500">Selected fabric</p><h3 className="mt-1 font-semibold">{viewingFabric.name}</h3></div><p className="font-semibold">{viewingFabric.price != null ? `$${viewingFabric.price}` : 'Custom'}</p></div><p className="mt-2 text-sm text-stone-500">{viewingFabric.category || viewingFabric.color || 'Atelier fabric'}</p><p className="mt-3 text-sm leading-6 text-stone-600">{viewingFabric.description || 'A fabric selected for its feel, drape, and finish.'}</p></div>}
+                                {viewingFabric && <div className="mt-4 rounded-2xl bg-stone-100 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-stone-500">Selected fabric</p><h3 className="mt-1 font-semibold">{viewingFabric.name}</h3></div><p className="font-semibold">{viewingFabric.price != null ? `Rs ${viewingFabric.price}` : 'Custom'}</p></div><p className="mt-2 text-sm text-stone-500">{viewingFabric.category || viewingFabric.color || 'Atelier fabric'}</p><p className="mt-3 text-sm leading-6 text-stone-600">{viewingFabric.description || 'A fabric selected for its feel, drape, and finish.'}</p></div>}
                             </div>
-                            <div className="lg:col-span-2"><label htmlFor="measurements" className="text-sm font-semibold">Measurements or notes</label><textarea id="measurements" value={measurementSnapshot} onChange={(event) => setMeasurementSnapshot(event.target.value)} rows="4" placeholder="Enter your measurements or measurement notes" className="admin-input mt-2" /></div>
+                            <div className="lg:col-span-2"><div className="flex items-end justify-between gap-4"><div><p className="text-sm font-semibold">Your measurements</p><p className="mt-1 text-sm text-stone-500">Enter each measurement requested for this garment.</p></div></div>{requiredMeasurements.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2">{requiredMeasurements.map((measurement, index) => <label key={measurement.name} className="text-sm font-medium text-stone-700">{measurement.name}<input type="text" inputMode="decimal" value={measurementValues[index] || ''} onChange={(event) => setMeasurementValues((values) => ({ ...values, [index]: event.target.value }))} placeholder={`Enter ${measurement.name.toLowerCase()}`} className="admin-input mt-2" /></label>)}</div> : <p className="mt-3 rounded-2xl bg-stone-100 p-4 text-sm text-stone-500">No specific measurements are required for this garment.</p>}</div>
                             <div className="lg:col-span-2"><label htmlFor="customization" className="text-sm font-semibold">Customization requests</label><textarea id="customization" value={customizationDetails} onChange={(event) => setCustomizationDetails(event.target.value)} rows="4" placeholder="Color, fit, monogram, or other requests" className="admin-input mt-2" /></div>
                         </div>
                         <button type="button" onClick={handleAddToCart} className="mt-7 w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white hover:bg-stone-700">{isAuthenticated ? 'Add to cart' : 'Sign in to add to cart'}</button>

@@ -139,7 +139,12 @@ export const loadSession = () => {
     const storedAccessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
     const accessToken = isValidAccessToken(storedAccessToken) ? storedAccessToken : null
     const refreshToken = readCookie('tailor_refresh_token') || localStorage.getItem(REFRESH_TOKEN_KEY)
-    let user = JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+    let user = null
+    try {
+        user = JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+    } catch {
+        localStorage.removeItem(USER_KEY)
+    }
 
     if (!accessToken && storedAccessToken) {
         clearSession()

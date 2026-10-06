@@ -39,7 +39,7 @@ function AdminPage() {
         { label: 'Total designs', value: totalDesigns, detail: 'Design variations' },
         { label: 'Total fabrics', value: fabrics.length, detail: 'Material catalog' },
         { label: 'Active orders', value: activeOrders, detail: 'Orders in progress' },
-        { label: 'Revenue', value: `$${revenue.toFixed(2)}`, detail: 'From available orders' },
+        { label: 'Revenue', value: `Rs ${revenue.toFixed(2)}`, detail: 'From available orders' },
     ]
 
     useEffect(() => {
@@ -189,7 +189,7 @@ function AdminPage() {
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-sm font-medium text-stone-900">{product.basePrice != null ? `$${product.basePrice}` : 'Custom'}</p>
+                                                        <p className="text-sm font-medium text-stone-900">{product.basePrice != null ? `Rs ${product.basePrice}` : 'Custom'}</p>
                                                         <p className="text-sm text-stone-500">{product.isActive === false ? 'Inactive' : 'Active'}</p>
                                                     </div>
                                                 </div>
@@ -352,7 +352,7 @@ function AdminPage() {
                                             <tr key={order.id || order.orderId} className="border-t border-stone-200">
                                                 <td className="px-4 py-3 font-medium text-stone-900">#{order.orderNumber || order.id || order.orderId}</td>
                                                 <td className="px-4 py-3 text-stone-600">{order.customer?.name || order.customerName || order.user?.name || 'Customer'}</td>
-                                                <td className="px-4 py-3 text-stone-900">${Number(order.totalAmount ?? order.total ?? order.amount ?? 0).toFixed(2)}</td>
+                                                <td className="px-4 py-3 text-stone-900">Rs {Number(order.totalAmount ?? order.total ?? order.amount ?? 0).toFixed(2)}</td>
                                                 <td className="px-4 py-3">
                                                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
                                                         {order.status || 'Pending'}
@@ -415,7 +415,7 @@ function SalesLineChart({ orders, range, onRangeChange }) {
 
     const linePath = chart.points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
     const areaPath = `${linePath} L ${chart.points.at(-1).x} ${chart.height - chart.padding.bottom} L ${chart.points[0].x} ${chart.height - chart.padding.bottom} Z`
-    const formatCurrency = (value) => `$${Math.round(value).toLocaleString()}`
+    const formatCurrency = (value) => `Rs ${Math.round(value).toLocaleString()}`
     const rangeLabel = range === '12m' ? 'Last 12 months' : range === '7d' ? 'Last 7 days' : 'Last 30 days'
 
     return (

@@ -14,13 +14,25 @@ const paymentStatus = (order) => read(order, 'paymentStatus', 'payment?.status')
 const total = (order) => read(order, 'totalAmount', 'total', 'amount') ?? 0
 const dateValue = (order) => read(order, 'createdAt', 'orderDate', 'date')
 
-const statusOptions = ['Pending', 'Confirmed', 'InProduction', 'Shipped', 'Completed', 'Cancelled']
+const statusOptions = ['Pending', 'Accepted', 'Rejected', 'InStitching', 'Completed', 'Ready', 'Delivered', 'Cancelled']
 const paymentOptions = ['Pending', 'Paid', 'Failed', 'Refunded']
+const allowedNextStatuses = {
+    Pending: ['Accepted', 'Rejected'],
+    Accepted: ['InStitching'],
+    InStitching: ['Completed'],
+    Completed: ['Ready'],
+    Ready: ['Delivered'],
+    Rejected: [],
+    Delivered: [],
+    Cancelled: [],
+}
 
 export default function OrdersPage() {
     const { data: response = [], isLoading, isError, error } = useGetAdminOrdersQuery()
     const [updateStatus, { isLoading: updating }] = useUpdateOrderStatusMutation()
     const [selectedOrder, setSelectedOrder] = useState(null)
+    const [draftStatus, setDraftStatus] = useState('')
+    const [rejectionReason, setRejectionReason] = useState('')
     const [search, setSearch] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [paymentFilter, setPaymentFilter] = useState('all')
@@ -49,10 +61,23 @@ export default function OrdersPage() {
             })
     }, [dateFilter, paymentFilter, response, search, sort, statusFilter])
 
-    const updateSelectedStatus = async (status) => {
+    const updateSelectedStatus = async () => {
+        const currentStatus = orderStatus(selectedOrder)
+        if (!selectedOrder || draftStatus === currentStatus) return
+        if (draftStatus === 'Rejected' && !rejectionReason.trim()) {
+            setMessage('A rejection reason is required.')
+            return
+        }
+        const confirmed = window.confirm(`Update order #${orderId(selectedOrder)} from ${currentStatus} to ${draftStatus}?`)
+        if (!confirmed) return
+
         try {
-            await updateStatus({ id: orderId(selectedOrder), status }).unwrap()
-            setSelectedOrder((current) => ({ ...current, status }))
+            await updateStatus({
+                id: orderId(selectedOrder),
+                status: draftStatus,
+                ...(draftStatus === 'Rejected' ? { rejectionReason: rejectionReason.trim() } : {}),
+            }).unwrap()
+            setSelectedOrder((current) => ({ ...current, status: draftStatus }))
             setMessage('Order status updated.')
         } catch (updateError) {
             setMessage(getErrorMessage(updateError))
@@ -72,10 +97,10 @@ export default function OrdersPage() {
             </section>
 
             <section className="mt-6 overflow-hidden rounded-3xl border border-stone-200 bg-white">
-                {isLoading ? <p className="p-5 text-sm text-stone-500">Loading orders...</p> : isError ? <p className="p-5 text-sm text-red-700">{getErrorMessage(error)}</p> : <div className="overflow-x-auto"><table className="min-w-[1050px] w-full text-left text-sm"><thead className="bg-stone-50 text-stone-500"><tr><th className="px-5 py-3 font-medium">Order number</th><th className="px-5 py-3 font-medium">Customer</th><th className="px-5 py-3 font-medium">Garment</th><th className="px-5 py-3 font-medium">Design</th><th className="px-5 py-3 font-medium">Fabric</th><th className="px-5 py-3 font-medium">Total</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Payment</th><th className="px-5 py-3 font-medium">Details</th></tr></thead><tbody>{filteredOrders.map((order) => { const person = customer(order); return <tr key={orderId(order)} className="border-t border-stone-100"><td className="px-5 py-4 font-medium">#{orderId(order)}</td><td className="px-5 py-4"><p>{person.name || 'Customer'}</p><p className="text-xs text-stone-500">{person.email || '-'}</p></td><td className="px-5 py-4">{garment(order)?.name || garment(order) || '-'}</td><td className="px-5 py-4">{design(order)?.name || design(order) || '-'}</td><td className="px-5 py-4">{fabric(order)?.name || fabric(order) || '-'}</td><td className="px-5 py-4">${Number(total(order)).toFixed(2)}</td><td className="px-5 py-4">{orderStatus(order)}</td><td className="px-5 py-4">{paymentStatus(order)}</td><td className="px-5 py-4"><button type="button" onClick={() => { setSelectedOrder(order); setMessage('') }} className="font-medium underline underline-offset-4">View</button></td></tr> })}</tbody></table>{filteredOrders.length === 0 && <p className="p-8 text-center text-sm text-stone-500">No orders match these filters.</p>}</div>}
+                {isLoading ? <p className="p-5 text-sm text-stone-500">Loading orders...</p> : isError ? <p className="p-5 text-sm text-red-700">{getErrorMessage(error)}</p> : <div className="overflow-x-auto"><table className="min-w-[1050px] w-full text-left text-sm"><thead className="bg-stone-50 text-stone-500"><tr><th className="px-5 py-3 font-medium">Order number</th><th className="px-5 py-3 font-medium">Customer</th><th className="px-5 py-3 font-medium">Garment</th><th className="px-5 py-3 font-medium">Design</th><th className="px-5 py-3 font-medium">Fabric</th><th className="px-5 py-3 font-medium">Total</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Payment</th><th className="px-5 py-3 font-medium">Details</th></tr></thead><tbody>{filteredOrders.map((order) => { const person = customer(order); return <tr key={orderId(order)} className="border-t border-stone-100"><td className="px-5 py-4 font-medium">#{orderId(order)}</td><td className="px-5 py-4"><p>{person.name || 'Customer'}</p><p className="text-xs text-stone-500">{person.email || '-'}</p></td><td className="px-5 py-4">{garment(order)?.name || garment(order) || '-'}</td><td className="px-5 py-4">{design(order)?.name || design(order) || '-'}</td><td className="px-5 py-4">{fabric(order)?.name || fabric(order) || '-'}</td><td className="px-5 py-4">Rs {Number(total(order)).toFixed(2)}</td><td className="px-5 py-4">{orderStatus(order)}</td><td className="px-5 py-4">{paymentStatus(order)}</td><td className="px-5 py-4"><button type="button" onClick={() => { setSelectedOrder(order); setDraftStatus(orderStatus(order)); setRejectionReason(''); setMessage('') }} className="font-medium underline underline-offset-4">View</button></td></tr> })}</tbody></table>{filteredOrders.length === 0 && <p className="p-8 text-center text-sm text-stone-500">No orders match these filters.</p>}</div>}
             </section>
 
-            {selectedOrder && <div className="fixed inset-0 z-20 flex justify-end bg-stone-900/30" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedOrder(null) }}><aside className="h-full w-full max-w-xl overflow-y-auto bg-white p-6 shadow-2xl"><div className="flex items-start justify-between border-b border-stone-200 pb-5"><div><p className="text-xs uppercase tracking-[0.25em] text-stone-500">Order detail</p><h2 className="mt-2 text-2xl font-semibold">#{orderId(selectedOrder)}</h2></div><button type="button" onClick={() => setSelectedOrder(null)} className="text-sm underline underline-offset-4">Close</button></div><div className="mt-6 space-y-5 text-sm"><Detail title="Customer" value={`${customer(selectedOrder).name || 'Customer'} · ${customer(selectedOrder).email || 'No email'}`} /><Detail title="Selection" value={`${garment(selectedOrder)?.name || garment(selectedOrder) || '-'} / ${design(selectedOrder)?.name || design(selectedOrder) || '-'} / ${fabric(selectedOrder)?.name || fabric(selectedOrder) || '-'}`} /><Detail title="Measurements" value={JSON.stringify(selectedOrder.measurementSnapshot || selectedOrder.measurements || 'Not provided')} /><Detail title="Customization" value={selectedOrder.customizationDetails || selectedOrder.customization || 'Not provided'} /><Detail title="Shipping address" value={selectedOrder.shippingAddress || selectedOrder.address || 'Not provided'} /><Detail title="Pricing" value={`Total: $${Number(total(selectedOrder)).toFixed(2)} · Payment: ${paymentStatus(selectedOrder)}`} /><div><p className="font-medium">Update status</p><select value={orderStatus(selectedOrder)} disabled={updating} onChange={(event) => updateSelectedStatus(event.target.value)} className="admin-input mt-2">{statusOptions.map((option) => <option key={option}>{option}</option>)}</select></div><button type="button" onClick={() => setMessage(`Payment status: ${paymentStatus(selectedOrder)}`)} className="rounded-full border border-stone-200 px-4 py-2 font-medium">View payment details</button>{message && <p className="rounded-2xl bg-stone-50 p-3 text-stone-700">{message}</p>}</div></aside></div>}
+            {selectedOrder && <div className="fixed inset-0 z-20 flex justify-end bg-stone-900/30" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedOrder(null) }}><aside className="h-full w-full max-w-xl overflow-y-auto bg-white p-6 shadow-2xl"><div className="flex items-start justify-between border-b border-stone-200 pb-5"><div><p className="text-xs uppercase tracking-[0.25em] text-stone-500">Order detail</p><h2 className="mt-2 text-2xl font-semibold">#{orderId(selectedOrder)}</h2></div><button type="button" onClick={() => setSelectedOrder(null)} className="text-sm underline underline-offset-4">Close</button></div><div className="mt-6 space-y-5 text-sm"><Detail title="Customer" value={`${customer(selectedOrder).name || 'Customer'} · ${customer(selectedOrder).email || 'No email'}`} /><Detail title="Selection" value={`${garment(selectedOrder)?.name || garment(selectedOrder) || '-'} / ${design(selectedOrder)?.name || design(selectedOrder) || '-'} / ${fabric(selectedOrder)?.name || fabric(selectedOrder) || '-'}`} /><Detail title="Measurements" value={JSON.stringify(selectedOrder.measurementSnapshot || selectedOrder.measurements || 'Not provided')} /><Detail title="Customization" value={selectedOrder.customizationDetails || selectedOrder.customization || 'Not provided'} /><Detail title="Shipping address" value={selectedOrder.shippingAddress || selectedOrder.address || 'Not provided'} /><Detail title="Pricing" value={`Total: Rs ${Number(total(selectedOrder)).toFixed(2)} · Payment: ${paymentStatus(selectedOrder)}`} /><div><p className="font-medium">Update status</p><select value={draftStatus} disabled={updating} onChange={(event) => { setDraftStatus(event.target.value); setMessage('') }} className="admin-input mt-2"><option value={orderStatus(selectedOrder)}>{orderStatus(selectedOrder)}</option>{(allowedNextStatuses[orderStatus(selectedOrder)] || []).map((option) => <option key={option} value={option}>{option}</option>)}</select>{draftStatus === 'Rejected' && <label className="mt-3 block font-medium">Rejection reason<textarea value={rejectionReason} disabled={updating} onChange={(event) => setRejectionReason(event.target.value)} required rows={3} className="admin-input mt-2" placeholder="Explain why this order is being rejected" /></label>}<button type="button" onClick={updateSelectedStatus} disabled={updating || draftStatus === orderStatus(selectedOrder)} className="mt-3 rounded-full bg-stone-900 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">{updating ? 'Updating...' : 'Update status'}</button></div><button type="button" onClick={() => setMessage(`Payment status: ${paymentStatus(selectedOrder)}`)} className="rounded-full border border-stone-200 px-4 py-2 font-medium">View payment details</button>{message && <p className="rounded-2xl bg-stone-50 p-3 text-stone-700">{message}</p>}</div></aside></div>}
         </AdminShell>
     )
 }

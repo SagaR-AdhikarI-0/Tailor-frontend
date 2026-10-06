@@ -55,3 +55,10 @@ export const addLocalCartItem = (user, item) => {
     saveLocalCart(user, nextItems)
     return nextItems
 }
+
+export const removeLocalCartItem = (user, itemKey) => {
+    const currentItems = getLocalCart(user)
+    const nextItems = currentItems.filter((item) => item.itemKey !== itemKey)
+    saveLocalCart(user, nextItems)
+    return nextItems
+}

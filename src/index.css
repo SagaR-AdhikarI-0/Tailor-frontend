@@ -28,9 +28,51 @@ body {
     box-sizing: border-box;
 }
 
+@keyframes float-square {
+    0%,
+    100% {
+        transform: translateY(0) rotate(var(--square-rotation, 0deg));
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(var(--square-rotation, 0deg));
+    }
+}
+
+.floating-square {
+    --square-rotation: 0deg;
+    animation: float-square 6s ease-in-out infinite;
+}
+
+.floating-square-delayed {
+    --square-rotation: -6deg;
+    animation-delay: -2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .floating-square,
+    .floating-square-delayed {
+        animation: none;
+    }
+}
+
 button,
 a {
     transition: all 0.2s ease;
+}
+
+button.bg-stone-900,
+a.bg-stone-900 {
+    background-color: #641d2b;
+}
+
+button.hover\:bg-stone-700:hover,
+a.hover\:bg-stone-700:hover {
+    background-color: #8f3040;
+}
+
+button:disabled {
+    opacity: 0.6;
 }
 
 .admin-input {

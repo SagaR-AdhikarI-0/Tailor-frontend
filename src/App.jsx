@@ -12,6 +12,10 @@ import DesignsPage from './pages/admin/DesignsPage'
 import FabricsPage from './pages/admin/FabricsPage'
 import OrdersPage from './pages/admin/OrdersPage'
 import ProductDetailPage from './pages/ProductDetailPage'
+import PaymentSuccessPage from './pages/PaymentSuccessPage'
+import PaymentFailurePage from './pages/PaymentFailurePage'
+import OrderDetailsPage from './pages/OrderDetailsPage'
+import MyOrdersPage from './pages/MyOrdersPage'
 
 function App() {
   return (
@@ -21,6 +25,10 @@ function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:productId" element={<ProductDetailPage />} />
+      <Route path="/payment/success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+      <Route path="/payment/failure" element={<ProtectedRoute><PaymentFailurePage /></ProtectedRoute>} />
+      <Route path="/orders/:orderId" element={<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>} />
+      <Route path="/orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
       <Route path="/user" element={<Navigate to="/" replace />} />
       <Route path="/cart" element={<CartPage />} />
       <Route

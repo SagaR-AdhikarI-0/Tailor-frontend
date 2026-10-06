@@ -7,26 +7,24 @@ import rightLastModel from '../../src/assets/right_last.png'
 function FashionHero() {
     return (
         <section className="relative min-h-[760px] overflow-hidden bg-[#f4efe9] pb-10 px-4 pt-12 sm:min-h-[820px] sm:px-6 sm:pt-14">
-
             {/* Content */}
             <div className="relative z-10 mx-auto max-w-5xl text-center">
 
                 {/* Small pill */}
                 <button className="mb-4 rounded-full bg-white px-6 py-1.5 text-xs font-medium text-gray-800 shadow-sm">
-                    Discover Fashion
+                    Made for you
                 </button>
 
                 {/* Heading */}
                 <h1 className="mx-auto max-w-3xl text-3xl font-medium leading-[1.05] tracking-tight text-stone-900 sm:text-4xl md:text-5xl">
-                    Where style meets innovative ways of
+                    Clothes made around you,
                     <br />
-                    meeting new fashion
+                    down to every detail.
                 </h1>
 
                 {/* Subtitle */}
                 <p className="mx-auto mt-3 max-w-lg text-xs leading-5 text-stone-600 sm:text-sm">
-                    Discover unique styles and explore innovative ways to
-                    express yourself through modern fashion.
+                    Choose your style, fabric, and fit. We create made-to-measure clothing shaped around you.
                 </p>
             </div>
 

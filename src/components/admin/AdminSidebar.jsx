@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectUser } from '../../features/auth/authSlice'
 import { adminLinks } from './adminLinks'
+import tailorLogo from '../../assets/tailor-logo.png'
 
 export default function AdminSidebar() {
     const location = useLocation()
@@ -9,12 +10,8 @@ export default function AdminSidebar() {
 
     return (
         <aside className="hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-stone-200 bg-white p-6 text-stone-900 lg:sticky lg:top-0 lg:block">
-            <Link to="/admin" className="mb-10 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold tracking-[0.2em] text-white">AR</div>
-                <div>
-                    <p className="text-[10px] uppercase tracking-[0.35em] text-stone-500">Admin</p>
-                    <p className="text-lg font-semibold text-stone-900">Atelier Rouge</p>
-                </div>
+            <Link to="/admin" aria-label="Atelier Rouge admin dashboard" className="mb-10 inline-flex">
+                <img src={tailorLogo} alt="Atelier Rouge" className="h-16 w-auto max-w-[210px] object-contain" />
             </Link>
             <nav className="space-y-2">
                 {adminLinks.map((link) => {

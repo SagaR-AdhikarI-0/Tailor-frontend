@@ -139,7 +139,6 @@ function SignupPage() {
                     </Link>
                 </p>
             </div>
-            <BottomNavbar />
         </div>
     )
 }
