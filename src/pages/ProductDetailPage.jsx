@@ -39,6 +39,7 @@ export default function ProductDetailPage() {
     const [viewingFabric, setViewingFabric] = useState(null)
     const [imageZoom, setImageZoom] = useState(null)
     const [measurementValues, setMeasurementValues] = useState({})
+    const [missingMeasurementIndex, setMissingMeasurementIndex] = useState(null)
     const [customizationDetails, setCustomizationDetails] = useState('')
     const [toast, setToast] = useState('')
 
@@ -70,9 +71,9 @@ export default function ProductDetailPage() {
     const activeFabrics = availableFabrics.filter((fabric) => fabric.isActive !== false)
     const requiredMeasurements = parseMeasurements(garment.requiredMeasurementsJson)
     const handleAddToCart = async () => {
-        const missingMeasurement = requiredMeasurements.find((_, index) => !String(measurementValues[index] || '').trim())
-        if (missingMeasurement) {
-            setMessage(`Please enter your ${missingMeasurement.name.toLowerCase()} measurement.`)
+        const missingIndex = requiredMeasurements.findIndex((_, index) => !String(measurementValues[index] || '').trim())
+        if (missingIndex !== -1) {
+            setMissingMeasurementIndex(missingIndex)
             setIsModalOpen(true)
             return
         }
@@ -224,7 +225,7 @@ export default function ProductDetailPage() {
                                 })}</div> : <p className="mt-3 rounded-xl bg-stone-100 p-3 text-sm text-stone-500">No fabrics are available for this garment.</p>}
                                 {viewingFabric && <div className="mt-4 rounded-2xl bg-stone-100 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-stone-500">Selected fabric</p><h3 className="mt-1 font-semibold">{viewingFabric.name}</h3></div><p className="font-semibold">{viewingFabric.price != null ? `Rs ${viewingFabric.price}` : 'Custom'}</p></div><p className="mt-2 text-sm text-stone-500">{viewingFabric.category || viewingFabric.color || 'Atelier fabric'}</p><p className="mt-3 text-sm leading-6 text-stone-600">{viewingFabric.description || 'A fabric selected for its feel, drape, and finish.'}</p></div>}
                             </div>
-                            <div className="lg:col-span-2"><div className="flex items-end justify-between gap-4"><div><p className="text-sm font-semibold">Your measurements</p><p className="mt-1 text-sm text-stone-500">Enter each measurement requested for this garment.</p></div></div>{requiredMeasurements.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2">{requiredMeasurements.map((measurement, index) => <label key={measurement.name} className="text-sm font-medium text-stone-700">{measurement.name}<input type="text" inputMode="decimal" value={measurementValues[index] || ''} onChange={(event) => setMeasurementValues((values) => ({ ...values, [index]: event.target.value }))} placeholder={`Enter ${measurement.name.toLowerCase()}`} className="admin-input mt-2" /></label>)}</div> : <p className="mt-3 rounded-2xl bg-stone-100 p-4 text-sm text-stone-500">No specific measurements are required for this garment.</p>}</div>
+                            <div className="lg:col-span-2"><div className="flex items-end justify-between gap-4"><div><p className="text-sm font-semibold">Your measurements</p><p className="mt-1 text-sm text-stone-500">Enter each measurement requested for this garment.</p></div></div>{missingMeasurementIndex !== null && <p id="measurement-error" role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">Please enter your {requiredMeasurements[missingMeasurementIndex]?.name.toLowerCase()} measurement.</p>}{requiredMeasurements.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2">{requiredMeasurements.map((measurement, index) => <label key={measurement.name} className="text-sm font-medium text-stone-700">{measurement.name}<input type="text" inputMode="decimal" value={measurementValues[index] || ''} aria-invalid={missingMeasurementIndex === index} aria-describedby={missingMeasurementIndex === index ? 'measurement-error' : undefined} onChange={(event) => { setMeasurementValues((values) => ({ ...values, [index]: event.target.value })); if (event.target.value.trim()) setMissingMeasurementIndex((current) => current === index ? null : current) }} placeholder={`Enter ${measurement.name.toLowerCase()}`} className="admin-input mt-2" /></label>)}</div> : <p className="mt-3 rounded-2xl bg-stone-100 p-4 text-sm text-stone-500">No specific measurements are required for this garment.</p>}</div>
                             <div className="lg:col-span-2"><label htmlFor="customization" className="text-sm font-semibold">Customization requests</label><textarea id="customization" value={customizationDetails} onChange={(event) => setCustomizationDetails(event.target.value)} rows="4" placeholder="Color, fit, monogram, or other requests" className="admin-input mt-2" /></div>
                         </div>
                         <button type="button" onClick={handleAddToCart} className="mt-7 w-full rounded-full bg-stone-900 px-4 py-4 text-sm font-semibold text-white hover:bg-stone-700">{isAuthenticated ? 'Add to cart' : 'Sign in to add to cart'}</button>
